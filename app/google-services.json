@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "977672167759",
+    "firebase_url": "https://temi-oliveyoung-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "temi-oliveyoung",
+    "storage_bucket": "temi-oliveyoung.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977672167759:android:9c03230220f3d8ecab253a",
+        "android_client_info": {
+          "package_name": "com.example.oliveyoung"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsWf56cDDff4RF-YDG9Vh81MgEge1v8Wo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
