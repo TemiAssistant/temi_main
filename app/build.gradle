@@ -5,7 +5,7 @@ plugins {
 
 android {
     compileSdkVersion 33
-    buildToolsVersion "36.1.0"
+    // buildToolsVersion "36.1.0"
 
     defaultConfig {
         applicationId "com.example.oliveyoung"
@@ -34,7 +34,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.annotation:annotation:1.9.1'
 
     // 🔹 Firebase BoM - 항상 제일 먼저
     implementation platform('com.google.firebase:firebase-bom:32.8.1')
@@ -43,10 +42,11 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore'
 
     // 🔹 Realtime Database가 필요하면 유지, 아니면 삭제해도 됨
-    // implementation 'com.google.firebase:firebase-database'
+    implementation 'com.google.firebase:firebase-database'
 
     // 🔹 Analytics (원하면 유지)
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'androidx.annotation:annotation:1.9.1'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
