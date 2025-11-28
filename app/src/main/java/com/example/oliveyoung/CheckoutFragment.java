@@ -32,6 +32,7 @@ public class CheckoutFragment extends Fragment {
     private Robot robot;
     private FirebaseFirestore db;
 
+    private Button buttonBack;
     private TextView textStatus;
     private TextView textTotalPrice;
     private RecyclerView recyclerCart;
@@ -39,7 +40,6 @@ public class CheckoutFragment extends Fragment {
     private Button buttonScan;
     private Button buttonPay;
     private Button buttonPaymentDone;
-    private Button buttonBack;
 
     private CartAdapter cartAdapter;
     private List<CartItem> cartItems = new ArrayList<>();
@@ -52,12 +52,12 @@ public class CheckoutFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater,
-                             ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_checkout, container, false);
 
+        buttonBack = view.findViewById(R.id.buttonBack);
         textStatus = view.findViewById(R.id.textStatus);
         textTotalPrice = view.findViewById(R.id.textTotalPrice);
         recyclerCart = view.findViewById(R.id.recyclerCart);
@@ -65,18 +65,16 @@ public class CheckoutFragment extends Fragment {
         buttonScan = view.findViewById(R.id.buttonScan);
         buttonPay = view.findViewById(R.id.buttonPay);
         buttonPaymentDone = view.findViewById(R.id.buttonPaymentDone);
-        buttonBack = view.findViewById(R.id.buttonBack);
 
-        recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
-        cartAdapter = new CartAdapter();
-        recyclerCart.setAdapter(cartAdapter);
-
-        // 뒤로가기 버튼
         buttonBack.setOnClickListener(v -> {
             if (getActivity() != null) {
                 getActivity().onBackPressed();
             }
         });
+
+        recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
+        cartAdapter = new CartAdapter();
+        recyclerCart.setAdapter(cartAdapter);
 
         subscribeOrder();
 
@@ -97,7 +95,7 @@ public class CheckoutFragment extends Fragment {
                         return;
                     }
                     if (snapshot == null || !snapshot.exists()) {
-                        textStatus.setText("바코드를 스캔하여\n상품을 담아주세요");
+                        textStatus.setText("현재 진행 중인 주문이 없습니다.");
                         return;
                     }
 
@@ -111,11 +109,11 @@ public class CheckoutFragment extends Fragment {
             cartItems.clear();
             cartAdapter.setItems(cartItems);
             updateTotalPrice();
-            textStatus.setText("바코드를 스캔하여\n상품을 담아주세요");
-            textStatus.setVisibility(View.VISIBLE);
+            textStatus.setText("장바구니가 비어 있습니다.");
             return;
         }
 
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> itemList = (List<Map<String, Object>>) itemsObj;
 
         cartItems.clear();
@@ -137,11 +135,6 @@ public class CheckoutFragment extends Fragment {
             if (TextUtils.isEmpty(productId) || quantity <= 0) continue;
 
             loadProductAndAddToCart(productId, quantity);
-        }
-
-        // 장바구니에 상품이 있으면 textStatus 숨기기
-        if (!itemList.isEmpty()) {
-            textStatus.setVisibility(View.GONE);
         }
     }
 
@@ -165,7 +158,6 @@ public class CheckoutFragment extends Fragment {
                     updateTotalPrice();
                 })
                 .addOnFailureListener(e -> {
-                    // 로그만 남기기
                 });
     }
 
@@ -176,6 +168,12 @@ public class CheckoutFragment extends Fragment {
         }
         NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
         textTotalPrice.setText("총 금액: ₩" + nf.format(total));
+    }
+
+    private void startBarcodeScanning() {
+        textStatus.setText("바코드를 스캔해주세요...");
+        textStatus.setVisibility(View.VISIBLE);
+        speak("바코드를 스캔해주세요.");
     }
 
     private void generatePaymentQr() {
@@ -194,10 +192,6 @@ public class CheckoutFragment extends Fragment {
         speak("총 금액 " + total + "원 결제용 QR 코드를 생성합니다.");
 
         String payload = "orderId=" + ORDER_ID + "&amount=" + total;
-
-        // TODO: QR 코드 생성
-        // Bitmap qrBitmap = createQrCodeBitmap(payload);
-        // imageQr.setImageBitmap(qrBitmap);
 
         db.collection("orders").document(ORDER_ID)
                 .update("status", "pending_payment");
@@ -222,15 +216,5 @@ public class CheckoutFragment extends Fragment {
         if (robot == null) return;
         TtsRequest ttsRequest = TtsRequest.create(text, false);
         robot.speak(ttsRequest);
-    }
-
-    private void startBarcodeScanning() {
-        textStatus.setText("바코드를 스캔해주세요...");
-        textStatus.setVisibility(View.VISIBLE);
-        speak("바코드를 스캔해주세요.");
-
-        // TODO: 실제 바코드 스캔 기능 구현
-        // 예시: Temi의 바코드 스캔 기능 또는 외부 스캐너 연동
-        // 스캔된 바코드로 상품을 검색하여 장바구니에 추가
     }
 }

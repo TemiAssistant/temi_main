@@ -1,20 +1,14 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Dark theme for night mode -->
     <style name="Theme.Oliveyoung" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color (밤에도 동일) -->
         <item name="colorPrimary">@color/oliveyoung_green</item>
         <item name="colorPrimaryVariant">@color/oliveyoung_dark_green</item>
         <item name="colorOnPrimary">@color/white</item>
 
-        <!-- Secondary brand color (밤에도 동일) -->
         <item name="colorSecondary">@color/oliveyoung_pink</item>
         <item name="colorSecondaryVariant">@color/oliveyoung_pink</item>
         <item name="colorOnSecondary">@color/white</item>
 
-        <!-- Status bar color (다크 모드) -->
         <item name="android:statusBarColor" tools:targetApi="l">@color/oliveyoung_dark_green</item>
-
-        <!-- Background color (다크 모드) -->
         <item name="android:windowBackground">@color/background_dark</item>
     </style>
 </resources>

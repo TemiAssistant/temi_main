@@ -28,9 +28,9 @@ public class SearchFragment extends Fragment {
     private Robot robot;
     private FirebaseFirestore db;
 
+    private Button buttonBack;
     private EditText editQuery;
     private Button buttonSearch;
-    private Button buttonBack;
     private TextView textStatus;
     private RecyclerView recyclerProducts;
     private ProductAdapter adapter;
@@ -43,21 +43,25 @@ public class SearchFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater,
-                             ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
+        buttonBack = view.findViewById(R.id.buttonBack);
         editQuery = view.findViewById(R.id.editQuery);
         buttonSearch = view.findViewById(R.id.buttonSearch);
-        buttonBack = view.findViewById(R.id.buttonBack);
         textStatus = view.findViewById(R.id.textStatus);
         recyclerProducts = view.findViewById(R.id.recyclerProducts);
 
+        buttonBack.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().onBackPressed();
+            }
+        });
+
         recyclerProducts.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // 상품 클릭 시 Temi 이동
         adapter = new ProductAdapter(product -> {
             String zone = product.getLocationZone();
             if (TextUtils.isEmpty(zone)) {
@@ -75,13 +79,6 @@ public class SearchFragment extends Fragment {
         });
 
         recyclerProducts.setAdapter(adapter);
-
-        // 뒤로가기 버튼
-        buttonBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
-        });
 
         buttonSearch.setOnClickListener(v -> searchProducts());
 

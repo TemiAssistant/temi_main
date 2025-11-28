@@ -42,28 +42,24 @@ public class FollowFragment extends Fragment {
         buttonGoHome = view.findViewById(R.id.buttonGoHome);
         textStatus = view.findViewById(R.id.textStatus);
 
-        // 뒤로가기 버튼
         buttonBack.setOnClickListener(v -> {
             if (getActivity() != null) {
                 getActivity().onBackPressed();
             }
         });
 
-        // 따라오기
         buttonFollow.setOnClickListener(v -> {
             robot.beWithMe();
             textStatus.setText("테미가 당신을 따라가기 시작했어요.");
             speak("제가 지금부터 고객님을 따라갈게요.");
         });
 
-        // 멈추기
         buttonStop.setOnClickListener(v -> {
             robot.stopMovement();
             textStatus.setText("테미가 움직임을 멈췄어요.");
             speak("움직임을 멈출게요.");
         });
 
-        // 베이스로 돌아가기
         buttonGoHome.setOnClickListener(v -> {
             textStatus.setText("베이스로 돌아가는 중입니다. 위치 이름: " + BASE_LOCATION_NAME);
             speak("이제 베이스로 돌아갈게요.");
