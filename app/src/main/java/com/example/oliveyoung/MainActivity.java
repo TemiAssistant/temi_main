@@ -2,40 +2,32 @@ package com.example.oliveyoung;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
+
+    private ViewPager2 viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // TabLayout과 ViewPager2 연결
-        TabLayout tabLayout = findViewById(R.id.tabLayout); // TabLayout을 찾아 연결
-        ViewPager2 viewPager = findViewById(R.id.viewPager); // ViewPager2를 찾아 연결
+        viewPager = findViewById(R.id.viewPager);
 
-        // FragmentAdapter 설정 (각 탭에 해당하는 Fragment 연결)
         FragmentAdapter fragmentAdapter = new FragmentAdapter(this);
-        viewPager.setAdapter(fragmentAdapter); // ViewPager에 어댑터 설정
+        viewPager.setAdapter(fragmentAdapter);
 
-        // TabLayout과 ViewPager2를 연결
-        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
-            // 각 탭에 표시할 텍스트 설정
-            switch (position) {
-                case 0:
-                    tab.setText("Follow");
-                    break;
-                case 1:
-                    tab.setText("Search");
-                    break;
-                case 2:
-                    tab.setText("Checkout");
-                    break;
-            }
-        }).attach(); // TabLayout과 ViewPager2를 동기화
+        // 홈 화면 버튼들
+        Button buttonTemiControl = findViewById(R.id.buttonTemiControl);
+        Button buttonSearch = findViewById(R.id.buttonSearch);
+        Button buttonCheckout = findViewById(R.id.buttonCheckout);
+
+        buttonTemiControl.setOnClickListener(v -> viewPager.setCurrentItem(0));
+        buttonSearch.setOnClickListener(v -> viewPager.setCurrentItem(1));
+        buttonCheckout.setOnClickListener(v -> viewPager.setCurrentItem(2));
     }
 }

@@ -1,16 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Theme.Oliveyoung" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/black</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+    <!-- Dark theme for night mode -->
+    <style name="Theme.Oliveyoung" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color (밤에도 동일) -->
+        <item name="colorPrimary">@color/oliveyoung_green</item>
+        <item name="colorPrimaryVariant">@color/oliveyoung_dark_green</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary brand color (밤에도 동일) -->
+        <item name="colorSecondary">@color/oliveyoung_pink</item>
+        <item name="colorSecondaryVariant">@color/oliveyoung_pink</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Status bar color (다크 모드) -->
+        <item name="android:statusBarColor" tools:targetApi="l">@color/oliveyoung_dark_green</item>
+
+        <!-- Background color (다크 모드) -->
+        <item name="android:windowBackground">@color/background_dark</item>
     </style>
 </resources>

@@ -1,6 +1,5 @@
 package com.example.oliveyoung;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -10,8 +9,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,8 +26,8 @@ import java.util.Map;
 
 public class CheckoutFragment extends Fragment {
 
-    private static final String ORDER_ID = "test_order_1";      // 임시: 현재 세션의 주문 ID
-    private static final String BASE_LOCATION_NAME = "충전소";   // Temi 베이스 위치 이름
+    private static final String ORDER_ID = "test_order_1";
+    private static final String BASE_LOCATION_NAME = "충전소";
 
     private Robot robot;
     private FirebaseFirestore db;
@@ -39,24 +36,25 @@ public class CheckoutFragment extends Fragment {
     private TextView textTotalPrice;
     private RecyclerView recyclerCart;
     private ImageView imageQr;
+    private Button buttonScan;
     private Button buttonPay;
     private Button buttonPaymentDone;
+    private Button buttonBack;
 
     private CartAdapter cartAdapter;
     private List<CartItem> cartItems = new ArrayList<>();
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         robot = Robot.getInstance();
         db = FirebaseFirestore.getInstance();
     }
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
+                             Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_checkout, container, false);
 
@@ -64,25 +62,31 @@ public class CheckoutFragment extends Fragment {
         textTotalPrice = view.findViewById(R.id.textTotalPrice);
         recyclerCart = view.findViewById(R.id.recyclerCart);
         imageQr = view.findViewById(R.id.imageQr);
+        buttonScan = view.findViewById(R.id.buttonScan);
         buttonPay = view.findViewById(R.id.buttonPay);
         buttonPaymentDone = view.findViewById(R.id.buttonPaymentDone);
+        buttonBack = view.findViewById(R.id.buttonBack);
 
         recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
         cartAdapter = new CartAdapter();
         recyclerCart.setAdapter(cartAdapter);
 
-        // 🔹 orders/{ORDER_ID} 문서를 실시간으로 구독
+        // 뒤로가기 버튼
+        buttonBack.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().onBackPressed();
+            }
+        });
+
         subscribeOrder();
 
+        buttonScan.setOnClickListener(v -> startBarcodeScanning());
         buttonPay.setOnClickListener(v -> generatePaymentQr());
         buttonPaymentDone.setOnClickListener(v -> finishPayment());
 
         return view;
     }
 
-    /**
-     * orders/{ORDER_ID} 문서를 snapshot listener로 구독
-     */
     private void subscribeOrder() {
         db.collection("orders")
                 .document(ORDER_ID)
@@ -93,7 +97,7 @@ public class CheckoutFragment extends Fragment {
                         return;
                     }
                     if (snapshot == null || !snapshot.exists()) {
-                        textStatus.setText("현재 진행 중인 주문이 없습니다.");
+                        textStatus.setText("바코드를 스캔하여\n상품을 담아주세요");
                         return;
                     }
 
@@ -101,23 +105,19 @@ public class CheckoutFragment extends Fragment {
                 });
     }
 
-    /**
-     * orders 문서의 items 배열을 읽어와서 cartItems를 갱신
-     */
     private void updateCartFromOrder(DocumentSnapshot snapshot) {
         Object itemsObj = snapshot.get("items");
         if (!(itemsObj instanceof List)) {
             cartItems.clear();
             cartAdapter.setItems(cartItems);
             updateTotalPrice();
-            textStatus.setText("장바구니가 비어 있습니다.");
+            textStatus.setText("바코드를 스캔하여\n상품을 담아주세요");
+            textStatus.setVisibility(View.VISIBLE);
             return;
         }
 
-        @SuppressWarnings("unchecked")
         List<Map<String, Object>> itemList = (List<Map<String, Object>>) itemsObj;
 
-        // 임시: Firestore join 단순화를 위해 한 번 비우고 다시 로딩
         cartItems.clear();
 
         for (Map<String, Object> itemMap : itemList) {
@@ -138,13 +138,14 @@ public class CheckoutFragment extends Fragment {
 
             loadProductAndAddToCart(productId, quantity);
         }
+
+        // 장바구니에 상품이 있으면 textStatus 숨기기
+        if (!itemList.isEmpty()) {
+            textStatus.setVisibility(View.GONE);
+        }
     }
 
-    /**
-     * products 컬렉션에서 product_id로 상품 정보를 가져와 CartItem으로 추가
-     */
     private void loadProductAndAddToCart(String productId, int quantity) {
-        // 여기서는 문서 ID == product_id 라고 가정 (추측입니다)
         db.collection("products")
                 .document(productId)
                 .get()
@@ -155,7 +156,6 @@ public class CheckoutFragment extends Fragment {
                     if (product == null) return;
 
                     CartItem item = new CartItem(product);
-                    // CartItem 기본 quantity=1 이라서 맞춰줌
                     for (int i = 1; i < quantity; i++) {
                         item.increase();
                     }
@@ -165,7 +165,7 @@ public class CheckoutFragment extends Fragment {
                     updateTotalPrice();
                 })
                 .addOnFailureListener(e -> {
-                    // 특정 상품 하나 못 불러온 건 굳이 사용자에게 말 안 해도 됨. 필요하면 로그만.
+                    // 로그만 남기기
                 });
     }
 
@@ -178,9 +178,6 @@ public class CheckoutFragment extends Fragment {
         textTotalPrice.setText("총 금액: ₩" + nf.format(total));
     }
 
-    /**
-     * 결제하기 버튼: 총 금액 기준으로 QR 생성
-     */
     private void generatePaymentQr() {
         long total = 0;
         for (CartItem item : cartItems) {
@@ -196,36 +193,28 @@ public class CheckoutFragment extends Fragment {
         textStatus.setText("총 금액 " + total + "원 결제용 QR을 생성합니다.");
         speak("총 금액 " + total + "원 결제용 QR 코드를 생성합니다.");
 
-        // 결제 서버/PG에서 원하는 형식으로 payload 구성
         String payload = "orderId=" + ORDER_ID + "&amount=" + total;
 
-        // TODO: ZXing 등으로 payload → QR Bitmap 생성
+        // TODO: QR 코드 생성
         // Bitmap qrBitmap = createQrCodeBitmap(payload);
         // imageQr.setImageBitmap(qrBitmap);
 
-        // (선택) orders/{ORDER_ID}.status = "pending_payment" 로 업데이트
         db.collection("orders").document(ORDER_ID)
                 .update("status", "pending_payment");
     }
 
-    /**
-     * 결제 완료 버튼: Firestore 상태 변경 + Temi 안내 + 베이스 이동
-     */
     private void finishPayment() {
         textStatus.setText("결제가 완료되었습니다. 베이스로 복귀합니다.");
         speak("이용해 주셔서 감사합니다. 이제 베이스로 돌아가겠습니다.");
 
-        // 주문 상태 업데이트
         db.collection("orders").document(ORDER_ID)
                 .update("isPaid", true, "status", "paid");
 
-        // 로컬 UI 정리
         cartItems.clear();
         cartAdapter.setItems(cartItems);
         updateTotalPrice();
         imageQr.setImageBitmap(null);
 
-        // Temi 베이스로 이동
         robot.goTo(BASE_LOCATION_NAME);
     }
 
@@ -233,5 +222,15 @@ public class CheckoutFragment extends Fragment {
         if (robot == null) return;
         TtsRequest ttsRequest = TtsRequest.create(text, false);
         robot.speak(ttsRequest);
+    }
+
+    private void startBarcodeScanning() {
+        textStatus.setText("바코드를 스캔해주세요...");
+        textStatus.setVisibility(View.VISIBLE);
+        speak("바코드를 스캔해주세요.");
+
+        // TODO: 실제 바코드 스캔 기능 구현
+        // 예시: Temi의 바코드 스캔 기능 또는 외부 스캐너 연동
+        // 스캔된 바코드로 상품을 검색하여 장바구니에 추가
     }
 }
