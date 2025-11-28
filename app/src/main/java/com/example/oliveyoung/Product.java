@@ -1,5 +1,6 @@
 package com.example.oliveyoung;
 
+import java.util.List;
 import java.util.Map;
 
 public class Product {
@@ -12,8 +13,12 @@ public class Product {
     private long price;
     private long original_price;
     private long discount_rate;
+
+    // location과 stock은 map이나 별도 클래스로 뽑을 수도 있지만
+    // 여기서는 zone만 먼저 쓰니까 필드 하나만 뽑아둘게
     private Map<String, Object> location;
 
+    // Firestore 역직렬화를 위해 기본 생성자 필수
     public Product() {}
 
     public String getProduct_id() {
@@ -52,6 +57,9 @@ public class Product {
         return location;
     }
 
+    /**
+     * location.zone 값을 편하게 꺼내기 위한 메서드
+     */
     public String getLocationZone() {
         if (location == null) return null;
         Object zone = location.get("zone");

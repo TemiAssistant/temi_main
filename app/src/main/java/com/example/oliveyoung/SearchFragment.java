@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,7 +30,6 @@ public class SearchFragment extends Fragment {
     private Robot robot;
     private FirebaseFirestore db;
 
-    private Button buttonBack;
     private EditText editQuery;
     private Button buttonSearch;
     private TextView textStatus;
@@ -36,30 +37,25 @@ public class SearchFragment extends Fragment {
     private ProductAdapter adapter;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         robot = Robot.getInstance();
         db = FirebaseFirestore.getInstance();
     }
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-        buttonBack = view.findViewById(R.id.buttonBack);
         editQuery = view.findViewById(R.id.editQuery);
         buttonSearch = view.findViewById(R.id.buttonSearch);
         textStatus = view.findViewById(R.id.textStatus);
         recyclerProducts = view.findViewById(R.id.recyclerProducts);
-
-        // 뒤로가기 버튼
-        buttonBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
-        });
 
         recyclerProducts.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -77,6 +73,7 @@ public class SearchFragment extends Fragment {
             textStatus.setText("테미가 " + zone + " 존으로 이동 중입니다.");
             speak(speakText);
 
+            // Temi SDK: zone 이름을 Temi Location 이름으로 사용
             robot.goTo(zone);
         });
 
@@ -87,6 +84,9 @@ public class SearchFragment extends Fragment {
         return view;
     }
 
+    /**
+     * 상품명(name)으로 검색
+     */
     private void searchProducts() {
         String query = editQuery.getText().toString().trim();
 
@@ -98,6 +98,7 @@ public class SearchFragment extends Fragment {
 
         textStatus.setText("상품명 \"" + query + "\" 으로 상품을 검색 중입니다...");
 
+        // 🔹 핵심: name 필드로 검색
         Task<QuerySnapshot> task = db.collection("products")
                 .whereEqualTo("name", query)
                 .get();

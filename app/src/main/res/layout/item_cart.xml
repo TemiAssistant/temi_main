@@ -1,56 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp">
+    android:padding="12dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <!-- 상품명 -->
+    <TextView
+        android:id="@+id/textName"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:text="상품명"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 
-        <!-- 상품명 -->
-        <TextView
-            android:id="@+id/textName"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="상품명"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@id/textLineTotal" />
+    <!-- 수량 -->
+    <TextView
+        android:id="@+id/textQuantity"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="수량: 1"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/textName"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="4dp" />
 
-        <!-- 수량 -->
-        <TextView
-            android:id="@+id/textQuantity"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="수량: 1"
-            android:textSize="16sp"
-            android:textColor="@color/text_secondary"
-            app:layout_constraintTop_toBottomOf="@id/textName"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@id/textLineTotal"
-            android:layout_marginTop="4dp" />
+    <!-- 가격 × 수량 = 합계 -->
+    <TextView
+        android:id="@+id/textLineTotal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="합계: ₩0"
+        android:textSize="14sp"
+        android:textColor="#333333"
+        app:layout_constraintTop_toBottomOf="@id/textQuantity"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="4dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- 합계 금액 -->
-        <TextView
-            android:id="@+id/textLineTotal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="합계: ₩0"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/oliveyoung_green"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-</androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
