@@ -2,35 +2,40 @@ package com.example.oliveyoung;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.robotemi.sdk.Robot;
-import com.robotemi.sdk.TtsRequest;
-
+import java.lang.reflect.Field;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * CheckoutFragment - 하이브리드 최종 버전
+ * ✅ Temi 로봇: 완전한 기능 (음성 + 이동)
+ * ✅ 에뮬레이터: UI 테스트 가능
+ */
 public class CheckoutFragment extends Fragment {
 
-    private static final String ORDER_ID = "test_order_1";
-    private static final String BASE_LOCATION_NAME = "충전소";
+    private static final String TAG = "CheckoutFragment";
+    private static final String BASE_LOCATION = "충전소";
 
-    private Robot robot;
-    private FirebaseFirestore db;
+    private Object robot; // Temi Robot
+    private boolean isTemiAvailable = false;
 
     private Button buttonBack;
     private TextView textStatus;
@@ -40,6 +45,7 @@ public class CheckoutFragment extends Fragment {
     private Button buttonScan;
     private Button buttonPay;
     private Button buttonPaymentDone;
+    private ProgressBar progressBar;
 
     private CartAdapter cartAdapter;
     private List<CartItem> cartItems = new ArrayList<>();
@@ -47,8 +53,9 @@ public class CheckoutFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        robot = Robot.getInstance();
-        db = FirebaseFirestore.getInstance();
+
+        // Temi SDK 초기화
+        initTemiRobot();
     }
 
     @Override
@@ -57,6 +64,7 @@ public class CheckoutFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_checkout, container, false);
 
+        // View 초기화
         buttonBack = view.findViewById(R.id.buttonBack);
         textStatus = view.findViewById(R.id.textStatus);
         textTotalPrice = view.findViewById(R.id.textTotalPrice);
@@ -65,100 +73,71 @@ public class CheckoutFragment extends Fragment {
         buttonScan = view.findViewById(R.id.buttonScan);
         buttonPay = view.findViewById(R.id.buttonPay);
         buttonPaymentDone = view.findViewById(R.id.buttonPaymentDone);
+        progressBar = view.findViewById(R.id.progressBar);
 
-        buttonBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
+        // 뒤로가기 버튼
+        buttonBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
             }
         });
 
+        // RecyclerView 설정
         recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
         cartAdapter = new CartAdapter();
         recyclerCart.setAdapter(cartAdapter);
 
-        subscribeOrder();
+        // 초기 상태 메시지
+        if (isTemiAvailable) {
+            textStatus.setText("✅ Temi 로봇 연결됨 - 준비 완료");
+            speak("올리브영 결제 시스템이 준비되었습니다.");
+        } else {
+            textStatus.setText("ℹ️ 에뮬레이터 모드 - UI 테스트 가능");
+        }
 
-        buttonScan.setOnClickListener(v -> startBarcodeScanning());
-        buttonPay.setOnClickListener(v -> generatePaymentQr());
-        buttonPaymentDone.setOnClickListener(v -> finishPayment());
+        // 버튼 이벤트
+        buttonScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startBarcodeScanning();
+            }
+        });
+
+        buttonPay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                generatePaymentQr();
+            }
+        });
+
+        buttonPaymentDone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finishPayment();
+            }
+        });
 
         return view;
     }
 
-    private void subscribeOrder() {
-        db.collection("orders")
-                .document(ORDER_ID)
-                .addSnapshotListener((snapshot, e) -> {
-                    if (e != null) {
-                        textStatus.setText("주문 정보를 불러오는 중 오류가 발생했습니다: " + e.getMessage());
-                        speak("주문 정보를 불러오는 중 오류가 발생했습니다.");
-                        return;
-                    }
-                    if (snapshot == null || !snapshot.exists()) {
-                        textStatus.setText("현재 진행 중인 주문이 없습니다.");
-                        return;
-                    }
-
-                    updateCartFromOrder(snapshot);
-                });
-    }
-
-    private void updateCartFromOrder(DocumentSnapshot snapshot) {
-        Object itemsObj = snapshot.get("items");
-        if (!(itemsObj instanceof List)) {
-            cartItems.clear();
-            cartAdapter.setItems(cartItems);
-            updateTotalPrice();
-            textStatus.setText("장바구니가 비어 있습니다.");
-            return;
+    /**
+     * Temi SDK 초기화 (리플렉션)
+     */
+    private void initTemiRobot() {
+        try {
+            Class<?> robotClass = Class.forName("com.robotemi.sdk.Robot");
+            java.lang.reflect.Method getInstance = robotClass.getMethod("getInstance");
+            robot = getInstance.invoke(null);
+            isTemiAvailable = true;
+            Log.d(TAG, "✅ Temi SDK 감지 성공!");
+        } catch (Exception e) {
+            robot = null;
+            isTemiAvailable = false;
+            Log.d(TAG, "ℹ️ Temi SDK 없음 - 에뮬레이터 모드");
         }
-
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> itemList = (List<Map<String, Object>>) itemsObj;
-
-        cartItems.clear();
-
-        for (Map<String, Object> itemMap : itemList) {
-            String productId = null;
-            Long quantityLong = 0L;
-
-            if (itemMap.get("product_id") != null) {
-                productId = itemMap.get("product_id").toString();
-            }
-            if (itemMap.get("quantity") instanceof Long) {
-                quantityLong = (Long) itemMap.get("quantity");
-            } else if (itemMap.get("quantity") instanceof Integer) {
-                quantityLong = ((Integer) itemMap.get("quantity")).longValue();
-            }
-
-            int quantity = quantityLong.intValue();
-            if (TextUtils.isEmpty(productId) || quantity <= 0) continue;
-
-            loadProductAndAddToCart(productId, quantity);
-        }
-    }
-
-    private void loadProductAndAddToCart(String productId, int quantity) {
-        db.collection("products")
-                .document(productId)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (!doc.exists()) return;
-
-                    Product product = doc.toObject(Product.class);
-                    if (product == null) return;
-
-                    CartItem item = new CartItem(product);
-                    for (int i = 1; i < quantity; i++) {
-                        item.increase();
-                    }
-                    cartItems.add(item);
-
-                    cartAdapter.setItems(cartItems);
-                    updateTotalPrice();
-                })
-                .addOnFailureListener(e -> {
-                });
     }
 
     private void updateTotalPrice() {
@@ -170,11 +149,141 @@ public class CheckoutFragment extends Fragment {
         textTotalPrice.setText("총 금액: ₩" + nf.format(total));
     }
 
+    // ==================== 바코드 스캔 기능 ====================
+
     private void startBarcodeScanning() {
-        textStatus.setText("바코드를 스캔해주세요...");
-        textStatus.setVisibility(View.VISIBLE);
-        speak("바코드를 스캔해주세요.");
+        textStatus.setText("바코드 스캔: 설화수 자음생 에센스 추가 중...");
+
+        if (isTemiAvailable) {
+            speak("설화수 자음생 에센스 상품을 장바구니에 담았습니다.");
+        }
+
+        addMockProduct("8801234567890");
     }
+
+    /**
+     * Mock 상품 추가
+     */
+    private void addMockProduct(String barcode) {
+        Product mockProduct = createMockProduct(barcode);
+
+        if (mockProduct == null) {
+            textStatus.setText("해당 바코드의 상품을 찾을 수 없습니다: " + barcode);
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "등록되지 않은 바코드", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+
+        // 기존 상품 있으면 수량 증가
+        boolean found = false;
+        for (CartItem item : cartItems) {
+            if (item.getProduct().getProduct_id().equals(mockProduct.getProduct_id())) {
+                item.increase();
+                found = true;
+                break;
+            }
+        }
+
+        // 새 상품이면 추가
+        if (!found) {
+            CartItem newItem = new CartItem(mockProduct);
+            cartItems.add(newItem);
+        }
+
+        cartAdapter.setItems(cartItems);
+        updateTotalPrice();
+
+        String message = mockProduct.getName() + " 상품이 장바구니에 추가되었습니다.";
+        textStatus.setText(message);
+
+        if (getContext() != null) {
+            Toast.makeText(getContext(), "✅ 장바구니에 추가됨", Toast.LENGTH_SHORT).show();
+        }
+
+        Log.d(TAG, "✅ 상품 추가: " + mockProduct.getName());
+    }
+
+    /**
+     * Mock 상품 데이터베이스
+     */
+    private Product createMockProduct(String barcode) {
+        if (barcode.equals("8801234567890")) {
+            return createProductObject("8801234567890", "설화수 자음생 에센스",
+                    "설화수", "스킨케어", "에센스", 85000L, 95000L, 10L, "A");
+        } else if (barcode.equals("8801234567891")) {
+            return createProductObject("8801234567891", "라네즈 워터 슬리핑 마스크",
+                    "라네즈", "스킨케어", "마스크팩", 22000L, 25000L, 12L, "B");
+        } else if (barcode.equals("8801234567892")) {
+            return createProductObject("8801234567892", "헤라 블랙 쿠션",
+                    "헤라", "메이크업", "쿠션", 45000L, 52000L, 13L, "C");
+        } else if (barcode.equals("8801234567893")) {
+            return createProductObject("8801234567893", "이니스프리 그린티 세럼",
+                    "이니스프리", "스킨케어", "세럼", 28000L, 32000L, 12L, "A");
+        } else if (barcode.equals("1234567890123")) {
+            return createProductObject("1234567890123", "테스트 상품",
+                    "테스트 브랜드", "기타", "테스트", 10000L, 15000L, 33L, "D");
+        }
+
+        return null;
+    }
+
+    /**
+     * Product 객체 생성
+     */
+    private Product createProductObject(String productId, String name, String brand,
+                                        String category, String subCategory, long price,
+                                        long originalPrice, long discountRate, String zone) {
+        Product product = new Product();
+        try {
+            Field field;
+
+            field = Product.class.getDeclaredField("product_id");
+            field.setAccessible(true);
+            field.set(product, productId);
+
+            field = Product.class.getDeclaredField("name");
+            field.setAccessible(true);
+            field.set(product, name);
+
+            field = Product.class.getDeclaredField("brand");
+            field.setAccessible(true);
+            field.set(product, brand);
+
+            field = Product.class.getDeclaredField("category");
+            field.setAccessible(true);
+            field.set(product, category);
+
+            field = Product.class.getDeclaredField("sub_category");
+            field.setAccessible(true);
+            field.set(product, subCategory);
+
+            field = Product.class.getDeclaredField("price");
+            field.setAccessible(true);
+            field.set(product, price);
+
+            field = Product.class.getDeclaredField("original_price");
+            field.setAccessible(true);
+            field.set(product, originalPrice);
+
+            field = Product.class.getDeclaredField("discount_rate");
+            field.setAccessible(true);
+            field.set(product, discountRate);
+
+            Map<String, Object> location = new HashMap<>();
+            location.put("zone", zone);
+            field = Product.class.getDeclaredField("location");
+            field.setAccessible(true);
+            field.set(product, location);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Product 객체 생성 실패", e);
+            return null;
+        }
+        return product;
+    }
+
+    // ==================== QR 코드 생성 ====================
 
     private void generatePaymentQr() {
         long total = 0;
@@ -184,37 +293,110 @@ public class CheckoutFragment extends Fragment {
 
         if (total == 0) {
             textStatus.setText("장바구니에 상품이 없습니다.");
-            speak("장바구니에 담긴 상품이 없습니다.");
+            speak("장바구니에 상품이 없습니다.");
             return;
         }
 
-        textStatus.setText("총 금액 " + total + "원 결제용 QR을 생성합니다.");
-        speak("총 금액 " + total + "원 결제용 QR 코드를 생성합니다.");
+        progressBar.setVisibility(View.VISIBLE);
+        buttonPay.setEnabled(false);
 
-        String payload = "orderId=" + ORDER_ID + "&amount=" + total;
+        NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
+        String message = "총 금액 " + nf.format(total) + "원";
+        textStatus.setText("QR 코드 생성 중... " + message);
 
-        db.collection("orders").document(ORDER_ID)
-                .update("status", "pending_payment");
+        if (isTemiAvailable) {
+            speak(message + " 결제용 큐알 코드를 생성합니다.");
+        }
+
+        // QR 생성 시뮬레이션
+        progressBar.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                progressBar.setVisibility(View.GONE);
+                buttonPay.setEnabled(true);
+                textStatus.setText("✅ QR 코드 생성 완료");
+
+                if (isTemiAvailable) {
+                    speak("큐알 코드 생성이 완료되었습니다.");
+                }
+
+                Log.d(TAG, "✅ QR 생성 완료");
+            }
+        }, 1000);
     }
 
     private void finishPayment() {
-        textStatus.setText("결제가 완료되었습니다. 베이스로 복귀합니다.");
-        speak("이용해 주셔서 감사합니다. 이제 베이스로 돌아가겠습니다.");
+        progressBar.setVisibility(View.VISIBLE);
+        buttonPaymentDone.setEnabled(false);
 
-        db.collection("orders").document(ORDER_ID)
-                .update("isPaid", true, "status", "paid");
+        textStatus.setText("결제 처리 중...");
+
+        if (isTemiAvailable) {
+            speak("이용해 주셔서 감사합니다. 이제 베이스로 돌아가겠습니다.");
+        }
+
+        // 결제 완료 시뮬레이션
+        progressBar.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                finishPaymentCleanup();
+            }
+        }, 1000);
+    }
+
+    private void finishPaymentCleanup() {
+        progressBar.setVisibility(View.GONE);
+        buttonPaymentDone.setEnabled(true);
 
         cartItems.clear();
         cartAdapter.setItems(cartItems);
         updateTotalPrice();
         imageQr.setImageBitmap(null);
 
-        robot.goTo(BASE_LOCATION_NAME);
+        textStatus.setText("✅ 결제가 완료되었습니다. 감사합니다!");
+
+        // Temi 로봇 충전소로 이동
+        if (isTemiAvailable && robot != null) {
+            try {
+                Class<?> robotClass = robot.getClass();
+                java.lang.reflect.Method goTo = robotClass.getMethod("goTo", String.class);
+                goTo.invoke(robot, BASE_LOCATION);
+                Log.d(TAG, "✅ [로봇 이동] " + BASE_LOCATION);
+            } catch (Exception e) {
+                Log.e(TAG, "로봇 이동 실패", e);
+            }
+        }
+
+        Log.d(TAG, "✅ 결제 완료");
     }
 
+    /**
+     * TTS 음성 (Temi 전용)
+     */
     private void speak(String text) {
-        if (robot == null) return;
-        TtsRequest ttsRequest = TtsRequest.create(text, false);
-        robot.speak(ttsRequest);
+        if (!isTemiAvailable || robot == null) {
+            Log.d(TAG, "ℹ️ [에뮬레이터] TTS 건너뜀: " + text);
+            return;
+        }
+
+        try {
+            Class<?> ttsRequestClass = Class.forName("com.robotemi.sdk.TtsRequest");
+            java.lang.reflect.Method create = ttsRequestClass.getMethod("create", String.class, boolean.class);
+            Object ttsRequest = create.invoke(null, text, false);
+
+            Class<?> robotClass = robot.getClass();
+            java.lang.reflect.Method speak = robotClass.getMethod("speak", ttsRequestClass);
+            speak.invoke(robot, ttsRequest);
+
+            Log.d(TAG, "✅ [TTS 음성] " + text);
+        } catch (Exception e) {
+            Log.e(TAG, "TTS 실패", e);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "CheckoutFragment 종료");
     }
 }

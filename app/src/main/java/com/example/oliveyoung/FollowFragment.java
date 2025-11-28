@@ -6,29 +6,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
-import com.robotemi.sdk.Robot;
-import com.robotemi.sdk.TtsRequest;
-
 public class FollowFragment extends Fragment {
-
-    private Robot robot;
 
     private Button buttonBack;
     private Button buttonFollow;
     private Button buttonStop;
     private Button buttonGoHome;
     private TextView textStatus;
-
-    private static final String BASE_LOCATION_NAME = "충전소";
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        robot = Robot.getInstance();
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -42,36 +30,60 @@ public class FollowFragment extends Fragment {
         buttonGoHome = view.findViewById(R.id.buttonGoHome);
         textStatus = view.findViewById(R.id.textStatus);
 
-        buttonBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
+        // 초기 버튼 상태
+        buttonStop.setEnabled(false);
+
+        buttonBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
             }
         });
 
-        buttonFollow.setOnClickListener(v -> {
-            robot.beWithMe();
-            textStatus.setText("테미가 당신을 따라가기 시작했어요.");
-            speak("제가 지금부터 고객님을 따라갈게요.");
+        buttonFollow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 버튼 상태 변경
+                buttonFollow.setEnabled(false);
+                buttonStop.setEnabled(true);
+                buttonGoHome.setEnabled(false);
+
+                textStatus.setText("따라가기 기능은 Temi 로봇에서만 작동합니다.");
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Temi 로봇 필요", Toast.LENGTH_SHORT).show();
+                }
+            }
         });
 
-        buttonStop.setOnClickListener(v -> {
-            robot.stopMovement();
-            textStatus.setText("테미가 움직임을 멈췄어요.");
-            speak("움직임을 멈출게요.");
+        buttonStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 버튼 상태 변경
+                buttonFollow.setEnabled(true);
+                buttonStop.setEnabled(false);
+                buttonGoHome.setEnabled(true);
+
+                textStatus.setText("정지되었습니다.");
+            }
         });
 
-        buttonGoHome.setOnClickListener(v -> {
-            textStatus.setText("베이스로 돌아가는 중입니다. 위치 이름: " + BASE_LOCATION_NAME);
-            speak("이제 베이스로 돌아갈게요.");
-            robot.goTo(BASE_LOCATION_NAME);
+        buttonGoHome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 버튼 상태 변경
+                buttonFollow.setEnabled(false);
+                buttonStop.setEnabled(true);
+                buttonGoHome.setEnabled(false);
+
+                textStatus.setText("베이스 이동 기능은 Temi 로봇에서만 작동합니다.");
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Temi 로봇 필요", Toast.LENGTH_SHORT).show();
+                }
+            }
         });
 
         return view;
-    }
-
-    private void speak(String text) {
-        if (robot == null) return;
-        TtsRequest ttsRequest = TtsRequest.create(text, false);
-        robot.speak(ttsRequest);
     }
 }
