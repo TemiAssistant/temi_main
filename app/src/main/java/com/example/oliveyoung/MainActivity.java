@@ -1,41 +1,70 @@
 package com.example.oliveyoung;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.viewpager2.widget.ViewPager2;
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.LinearLayout;
 
 public class MainActivity extends AppCompatActivity {
+
+    private ViewPager2 viewPager;
+    private LinearLayout logoLayout;
+    private LinearLayout buttonContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // TabLayout과 ViewPager2 연결
-        TabLayout tabLayout = findViewById(R.id.tabLayout); // TabLayout을 찾아 연결
-        ViewPager2 viewPager = findViewById(R.id.viewPager); // ViewPager2를 찾아 연결
+        viewPager = findViewById(R.id.viewPager);
+        logoLayout = findViewById(R.id.logoLayout);
+        buttonContainer = findViewById(R.id.buttonContainer);
 
-        // FragmentAdapter 설정 (각 탭에 해당하는 Fragment 연결)
         FragmentAdapter fragmentAdapter = new FragmentAdapter(this);
-        viewPager.setAdapter(fragmentAdapter); // ViewPager에 어댑터 설정
+        viewPager.setAdapter(fragmentAdapter);
 
-        // TabLayout과 ViewPager2를 연결
-        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
-            // 각 탭에 표시할 텍스트 설정
-            switch (position) {
-                case 0:
-                    tab.setText("Follow");
-                    break;
-                case 1:
-                    tab.setText("Search");
-                    break;
-                case 2:
-                    tab.setText("Checkout");
-                    break;
-            }
-        }).attach(); // TabLayout과 ViewPager2를 동기화
+        // 홈 화면 버튼들 (CardView)
+        CardView cardFollow = findViewById(R.id.cardFollow);
+        CardView cardSearch = findViewById(R.id.cardSearch);
+        CardView cardCheckout = findViewById(R.id.cardCheckout);
+
+        // 테미 제어 버튼
+        cardFollow.setOnClickListener(v -> {
+            logoLayout.setVisibility(View.GONE);
+            buttonContainer.setVisibility(View.GONE);
+            viewPager.setVisibility(View.VISIBLE);
+            viewPager.setCurrentItem(0);
+        });
+
+        // 상품 검색 버튼
+        cardSearch.setOnClickListener(v -> {
+            logoLayout.setVisibility(View.GONE);
+            buttonContainer.setVisibility(View.GONE);
+            viewPager.setVisibility(View.VISIBLE);
+            viewPager.setCurrentItem(1);
+        });
+
+        // 결제 버튼
+        cardCheckout.setOnClickListener(v -> {
+            logoLayout.setVisibility(View.GONE);
+            buttonContainer.setVisibility(View.GONE);
+            viewPager.setVisibility(View.VISIBLE);
+            viewPager.setCurrentItem(2);
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (viewPager.getVisibility() == View.VISIBLE) {
+            // Fragment에서 홈으로 돌아가기
+            viewPager.setVisibility(View.GONE);
+            logoLayout.setVisibility(View.VISIBLE);
+            buttonContainer.setVisibility(View.VISIBLE);
+        } else {
+            super.onBackPressed();
+        }
     }
 }
