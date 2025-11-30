@@ -1,4 +1,6 @@
-package com.example.oliveyoung;
+package com.example.oliveyoung.ui.checkout;
+
+import com.example.oliveyoung.api.Product;
 
 public class CartItem {
     private Product product;

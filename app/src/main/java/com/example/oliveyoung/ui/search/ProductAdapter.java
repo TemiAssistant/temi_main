@@ -1,4 +1,4 @@
-package com.example.oliveyoung;
+package com.example.oliveyoung.ui.search;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +7,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.oliveyoung.R;
+import com.example.oliveyoung.api.Product;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -20,7 +23,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     }
 
     private List<Product> items = new ArrayList<>();
-    private OnItemClickListener listener;
+    private final OnItemClickListener listener;
 
     public ProductAdapter(OnItemClickListener listener) {
         this.listener = listener;
@@ -51,6 +54,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     }
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {
+
         TextView textName;
         TextView textBrandCategory;
         TextView textPriceAndZone;
@@ -63,20 +67,30 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }
 
         public void bind(Product product, OnItemClickListener listener) {
+
+            // 상품명
             textName.setText(product.getName());
 
-            String brandCategory = product.getBrand() + " · " +
-                    product.getCategory() + " / " + product.getSub_category();
+            // 브랜드 + 카테고리 / 서브카테고리
+            String brandCategory =
+                    product.getBrand() + " · " +
+                            product.getCategory() + " / " +
+                            product.getSubCategory();
             textBrandCategory.setText(brandCategory);
 
+            // 가격
             NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
             String priceStr = "₩" + nf.format(product.getPrice());
 
-            String zone = product.getLocationZone();
-            if (zone == null) zone = "위치 정보 없음";
+            // 존 정보 (null / 빈 문자열 처리)
+            String zone = product.getZone();
+            if (zone == null || zone.isEmpty()) {
+                zone = "위치 정보 없음";
+            }
 
             textPriceAndZone.setText(priceStr + " · 존 " + zone);
 
+            // 클릭 이벤트
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onItemClick(product);

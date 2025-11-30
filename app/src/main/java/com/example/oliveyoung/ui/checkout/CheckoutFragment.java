@@ -1,6 +1,5 @@
-package com.example.oliveyoung;
+package com.example.oliveyoung.ui.checkout;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -16,6 +15,10 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.oliveyoung.R;
+import com.example.oliveyoung.api.Product;
+import com.example.oliveyoung.ui.checkout.CartAdapter;
+import com.example.oliveyoung.ui.checkout.CartItem;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.robotemi.sdk.Robot;
