@@ -3,11 +3,10 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 33
-    buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.example.oliveyoung"
-        minSdkVersion 23
+        minSdkVersion 24
         targetSdkVersion 33
         versionCode 1
         versionName "1.0"
@@ -28,10 +27,11 @@ android {
 }
 
 dependencies {
-    // .jar 파일만 포함 (Temi SDK 제외)
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
-    // AndroidX (Gradle 4.2.2 호환 버전)
+    implementation 'androidx.cardview:cardview:1.0.0'
+
+    // AndroidX
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -44,8 +44,11 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:30.5.0')
     implementation 'com.google.firebase:firebase-firestore'
 
+    implementation 'com.google.zxing:core:3.5.1'
+    implementation 'com.journeyapps:zxing-android-embedded:4.1.0'
+    implementation 'com.google.zxing:core:3.4.1'
+
     // 테스트
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }

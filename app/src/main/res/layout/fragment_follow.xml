@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light"
-    android:padding="16dp">
+    android:padding="20dp">
 
     <!-- 상단 바 -->
     <LinearLayout
@@ -13,15 +13,15 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:padding="12dp">
 
         <Button
             android:id="@+id/buttonBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:text="◀"
-            android:textSize="20sp" />
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/back_button"
+            android:text=""
+            android:elevation="10dp" />
 
         <TextView
             android:layout_width="0dp"
@@ -30,78 +30,127 @@
             android:gravity="center"
             android:text="따라가기"
             android:textColor="@color/text_primary"
-            android:textSize="24sp"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <View
-            android:layout_width="48dp"
-            android:layout_height="48dp" />
+            android:layout_width="56dp"
+            android:layout_height="56dp" />
     </LinearLayout>
 
-    <!-- 상태 텍스트 -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/topBar"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp">
 
-        <TextView
-            android:id="@+id/textStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/card_background"
-            android:padding="16dp"
-            android:text="테미가 준비되었습니다."
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
-    </androidx.cardview.widget.CardView>
-
-    <!-- 버튼 컨테이너 -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- 테미 상태 텍스트 : 화면 정중앙 + 크게 표시 -->
+    <TextView
+        android:id="@+id/textStatus"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:text="테미가 준비되었습니다."
+        android:textColor="@color/text_primary"
+        android:textSize="32sp"
+        android:textStyle="bold"
         android:gravity="center"
-        android:orientation="vertical"
-        android:padding="32dp">
+        android:padding="24dp" />
 
-        <!-- 따라가기 버튼 -->
-        <Button
-            android:id="@+id/buttonFollow"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:layout_marginBottom="16dp"
+
+    <!-- 하단 버튼 3개 -->
+    <LinearLayout
+        android:id="@+id/buttonContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="40dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- 따라가기 -->
+        <LinearLayout
+            android:id="@+id/followWrapper"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:background="@drawable/menu_button_bg"
             android:backgroundTint="@color/oliveyoung_green"
-            android:text="👣 따라가기 시작"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:gravity="center"
+            android:orientation="vertical">
 
-        <!-- 정지 버튼 -->
-        <Button
-            android:id="@+id/buttonStop"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/oliveyoung_pink"
-            android:text="⏸ 정지"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👣"
+                android:textColor="@color/white"
+                android:textSize="48sp" />
 
-        <!-- 베이스로 이동 버튼 -->
-        <Button
-            android:id="@+id/buttonGoHome"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:backgroundTint="@color/oliveyoung_dark_green"
-            android:text="🏠 베이스로 이동"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="따라가기"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 정지 -->
+        <LinearLayout
+            android:id="@+id/stopWrapper"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:background="@drawable/menu_button_bg"
+            android:backgroundTint="@color/oliveyoung_green"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⏸"
+                android:textColor="@color/white"
+                android:textSize="48sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="정지"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 베이스 이동 -->
+        <LinearLayout
+            android:id="@+id/goHomeWrapper"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:background="@drawable/menu_button_bg"
+            android:backgroundTint="@color/oliveyoung_green"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏠"
+                android:textColor="@color/white"
+                android:textSize="48sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="베이스"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </RelativeLayout>

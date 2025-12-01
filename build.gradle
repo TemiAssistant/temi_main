@@ -1,13 +1,12 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
         google()
         mavenCentral()
-        jcenter()
+        jcenter()      // ★ 이거 꼭 추가 (zxing 옛 버전 대응)
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:4.2.2"
-        classpath 'com.google.gms:google-services:4.3.10'
+        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.google.gms:google-services:4.3.15'
     }
 }
 
@@ -15,10 +14,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        jcenter()
+        jcenter()      // ★ 여기도
     }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
 }

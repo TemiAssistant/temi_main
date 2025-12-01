@@ -21,6 +21,16 @@ public class CartItem {
         quantity++;
     }
 
+    public void decrease() {
+        if (quantity > 0) {
+            quantity--;
+        }
+    }
+
+    public boolean isEmpty() {
+        return quantity <= 0;
+    }
+
     public long getLineTotal() {
         return product.getPrice() * quantity;
     }

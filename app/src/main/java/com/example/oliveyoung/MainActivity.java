@@ -1,33 +1,28 @@
 package com.example.oliveyoung;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.viewpager2.widget.ViewPager2;
-
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-/**
- * MainActivity - 하이브리드 버전
- * - Temi 로봇: 완전한 기능
- * - 에뮬레이터: UI만 작동
- */
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
+
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
-
-    private Object robot; // Temi Robot (리플렉션)
-    private boolean isTemiAvailable = false;
-
     private ViewPager2 viewPager;
-    private LinearLayout logoLayout;
-    private LinearLayout buttonContainer;
 
-    // 더블 탭 종료
+    // 홈 화면(버튼들) 래퍼
+    private LinearLayout buttonContainer;
+    private LinearLayout btnFollow;
+    private LinearLayout btnSearch;
+    private LinearLayout btnCheckout;
+
+    // 로고 뷰
+    private View temiLogo;
+    private View oliveLogo;
+
+    // 뒤로가기 두 번 눌러 종료
     private long backPressedTime = 0;
     private Toast backToast;
 
@@ -36,127 +31,72 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 화면 꺼짐 방지
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        // Temi SDK 초기화 (있으면 사용)
-        initTemiRobot();
-
-        viewPager = findViewById(R.id.viewPager);
-        logoLayout = findViewById(R.id.logoLayout);
+        // 1. 뷰 찾기
+        viewPager       = findViewById(R.id.viewPager);
         buttonContainer = findViewById(R.id.buttonContainer);
+        btnFollow       = findViewById(R.id.btnFollow);
+        btnSearch       = findViewById(R.id.btnSearch);
+        btnCheckout     = findViewById(R.id.btnCheckout);
+        temiLogo        = findViewById(R.id.imageTemiAssistantLogo);
+        oliveLogo       = findViewById(R.id.imageOliveYoungLogo);
 
+        // 2. ViewPager + 어댑터 연결
         FragmentAdapter fragmentAdapter = new FragmentAdapter(this);
         viewPager.setAdapter(fragmentAdapter);
+        viewPager.setUserInputEnabled(false);  // 스와이프 금지 (필요하면 true로 바꿔도 됨)
 
-        CardView cardFollow = findViewById(R.id.cardFollow);
-        CardView cardSearch = findViewById(R.id.cardSearch);
-        CardView cardCheckout = findViewById(R.id.cardCheckout);
+        // 3. 처음에는 홈 화면만 보이게
+        showHome();
 
-        cardFollow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logoLayout.setVisibility(View.GONE);
-                buttonContainer.setVisibility(View.GONE);
-                viewPager.setVisibility(View.VISIBLE);
-                viewPager.setCurrentItem(0);
-            }
-        });
-
-        cardSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logoLayout.setVisibility(View.GONE);
-                buttonContainer.setVisibility(View.GONE);
-                viewPager.setVisibility(View.VISIBLE);
-                viewPager.setCurrentItem(1);
-            }
-        });
-
-        cardCheckout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logoLayout.setVisibility(View.GONE);
-                buttonContainer.setVisibility(View.GONE);
-                viewPager.setVisibility(View.VISIBLE);
-                viewPager.setCurrentItem(2);
-            }
-        });
+        // 4. 버튼 클릭 시 각 프래그먼트로 이동
+        btnFollow.setOnClickListener(v -> showFragment(0));   // FollowFragment
+        btnSearch.setOnClickListener(v -> showFragment(1));   // SearchFragment
+        btnCheckout.setOnClickListener(v -> showFragment(2)); // CheckoutFragment
     }
 
-    /**
-     * Temi SDK 초기화 (리플렉션)
-     */
-    private void initTemiRobot() {
-        try {
-            Class<?> robotClass = Class.forName("com.robotemi.sdk.Robot");
-            java.lang.reflect.Method getInstance = robotClass.getMethod("getInstance");
-            robot = getInstance.invoke(null);
-            isTemiAvailable = true;
+    /** ✅ 홈 화면(로고 + 3버튼) 보여주기 */
+    private void showHome() {
+        // ViewPager 숨기고
+        viewPager.setVisibility(View.GONE);
 
-            Log.d(TAG, "✅ Temi SDK 감지 성공!");
-            Toast.makeText(this, "✅ Temi 로봇 연결됨", Toast.LENGTH_SHORT).show();
-
-            // 환영 인사
-            speak("안녕하세요! 올리브영에 오신 걸 환영합니다.");
-
-        } catch (Exception e) {
-            robot = null;
-            isTemiAvailable = false;
-            Log.d(TAG, "ℹ️ Temi SDK 없음 - 에뮬레이터 모드");
-            Toast.makeText(this, "ℹ️ 에뮬레이터 모드", Toast.LENGTH_SHORT).show();
-        }
+        // 홈 영역(버튼 + 로고) 보여주기
+        buttonContainer.setVisibility(View.VISIBLE);
+        temiLogo.setVisibility(View.VISIBLE);
+        oliveLogo.setVisibility(View.VISIBLE);
     }
 
-    /**
-     * TTS 음성 (Temi 전용)
-     */
-    private void speak(String text) {
-        if (!isTemiAvailable || robot == null) {
-            return;
-        }
+    /** ✅ index 번째 프래그먼트 전체 화면으로 보여주기 */
+    private void showFragment(int index) {
+        // 홈 영역 숨기고
+        buttonContainer.setVisibility(View.GONE);
+        temiLogo.setVisibility(View.GONE);
+        oliveLogo.setVisibility(View.GONE);
 
-        try {
-            Class<?> ttsRequestClass = Class.forName("com.robotemi.sdk.TtsRequest");
-            java.lang.reflect.Method create = ttsRequestClass.getMethod("create", String.class, boolean.class);
-            Object ttsRequest = create.invoke(null, text, false);
-
-            Class<?> robotClass = robot.getClass();
-            java.lang.reflect.Method speak = robotClass.getMethod("speak", ttsRequestClass);
-            speak.invoke(robot, ttsRequest);
-
-            Log.d(TAG, "✅ [TTS] " + text);
-        } catch (Exception e) {
-            Log.e(TAG, "TTS 실패", e);
-        }
+        // ViewPager 보이고 해당 프래그먼트로 이동
+        viewPager.setVisibility(View.VISIBLE);
+        viewPager.setCurrentItem(index, false);
     }
 
     @Override
     public void onBackPressed() {
+        // 1) 프래그먼트 화면이면 → 홈으로 돌아가기
         if (viewPager.getVisibility() == View.VISIBLE) {
-            // Fragment에서 홈으로
-            viewPager.setVisibility(View.GONE);
-            logoLayout.setVisibility(View.VISIBLE);
-            buttonContainer.setVisibility(View.VISIBLE);
+            showHome();
+            return;
+        }
+
+        // 2) 이미 홈 화면이면 → 두 번 눌러서 앱 종료
+        if (backPressedTime + 2000 > System.currentTimeMillis()) {
+            if (backToast != null) backToast.cancel();
+            super.onBackPressed();
         } else {
-            // 홈 화면에서 더블 탭으로 종료
-            if (backPressedTime + 2000 > System.currentTimeMillis()) {
-                if (backToast != null) backToast.cancel();
-                super.onBackPressed();
-                finish();
-            } else {
-                backToast = Toast.makeText(this, "뒤로가기 버튼을 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT);
-                backToast.show();
-            }
+            backToast = Toast.makeText(
+                    this,
+                    "뒤로 버튼을 한 번 더 누르면 종료됩니다.",
+                    Toast.LENGTH_SHORT
+            );
+            backToast.show();
             backPressedTime = System.currentTimeMillis();
         }
-    }
-
-    public boolean isTemiAvailable() {
-        return isTemiAvailable;
-    }
-
-    public Object getRobot() {
-        return robot;
     }
 }

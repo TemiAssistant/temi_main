@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light"
-    android:padding="16dp">
+    android:padding="20dp">
 
     <!-- 상단 바 -->
     <LinearLayout
@@ -13,15 +13,15 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:padding="12dp">
 
         <Button
             android:id="@+id/buttonBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:text="◀"
-            android:textSize="20sp" />
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/back_button"
+            android:text=""
+            android:elevation="10dp" />
 
         <TextView
             android:layout_width="0dp"
@@ -30,12 +30,12 @@
             android:gravity="center"
             android:text="상품 검색"
             android:textColor="@color/text_primary"
-            android:textSize="24sp"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <View
-            android:layout_width="48dp"
-            android:layout_height="48dp" />
+            android:layout_width="56dp"
+            android:layout_height="56dp" />
     </LinearLayout>
 
     <!-- 검색 영역 -->
@@ -44,16 +44,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/topBar"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp">
+        android:layout_marginTop="20dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="6dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/card_background"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:padding="12dp">
 
             <EditText
                 android:id="@+id/editQuery"
@@ -63,16 +63,19 @@
                 android:hint="상품명을 입력하세요"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
-                android:padding="12dp"
-                android:textSize="16sp" />
+                android:padding="14dp"
+                android:textSize="18sp"
+                android:background="@android:color/transparent" />
 
             <Button
                 android:id="@+id/buttonSearch"
-                android:layout_width="wrap_content"
+                android:layout_width="96dp"
                 android:layout_height="wrap_content"
+                android:minHeight="48dp"
                 android:backgroundTint="@color/oliveyoung_green"
                 android:text="검색"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:textSize="18sp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -82,11 +85,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/cardSearch"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="18dp"
         android:padding="16dp"
         android:text="상품명을 입력하고 검색 버튼을 눌러주세요."
         android:textColor="@color/text_secondary"
-        android:textSize="14sp" />
+        android:textSize="18sp" />
 
     <!-- 프로그레스 바 -->
     <ProgressBar
@@ -102,6 +105,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/textStatus"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
 
 </RelativeLayout>
