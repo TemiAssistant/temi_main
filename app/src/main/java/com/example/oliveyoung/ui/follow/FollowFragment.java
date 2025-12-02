@@ -22,6 +22,7 @@ public class FollowFragment extends Fragment {
     private Button buttonFollow;
     private Button buttonStop;
     private Button buttonGoHome;
+    private Button buttonBack;      // 🔹 추가: 뒤로가기 버튼
     private TextView textStatus;
 
     // Temi에서 "베이스(충전소)"로 저장해 둔 위치 이름
@@ -48,6 +49,12 @@ public class FollowFragment extends Fragment {
         buttonStop = view.findViewById(R.id.buttonStop);
         buttonGoHome = view.findViewById(R.id.buttonGoHome);
         textStatus = view.findViewById(R.id.textStatus);
+        buttonBack = view.findViewById(R.id.buttonBack);   // 🔹 추가: XML의 buttonBack 가져오기
+
+        // 🔹 뒤로가기 버튼: MainActivity의 onBackPressed() 호출 → 홈 화면으로
+        buttonBack.setOnClickListener(v -> {
+            requireActivity().onBackPressed();
+        });
 
         // 1) 따라오기
         buttonFollow.setOnClickListener(v -> {

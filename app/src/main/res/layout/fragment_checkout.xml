@@ -2,88 +2,170 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background_light"
+    android:padding="20dp">
 
+    <!-- 상단 바 -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <Button
+            android:id="@+id/buttonBack"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/back_button"
+            android:text=""
+            android:elevation="10dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="결제하기"
+            android:textColor="@color/text_primary"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="56dp"
+            android:layout_height="56dp" />
+    </LinearLayout>
+
+    <!-- 안내 텍스트 -->
     <TextView
         android:id="@+id/textStatus"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="바코드를 스캔해서 상품을 담아 주세요."
-        android:textSize="14sp"
-        android:padding="8dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:textSize="16sp"
+        android:padding="16dp"
+        android:textColor="@color/text_secondary"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_margin="8dp" />
+        android:layout_marginTop="12dp" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerCart"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/textStatus"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/textTotalPrice"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
-
+    <!-- 총 금액 -->
     <TextView
         android:id="@+id/textTotalPrice"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="총 금액: ₩0"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:padding="8dp"
+        android:textColor="@color/oliveyoung_dark_green"
+        app:layout_constraintTop_toBottomOf="@id/textStatus"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/buttonScan"
         android:layout_margin="8dp" />
 
-    <Button
-        android:id="@+id/buttonScan"
+    <!-- 장바구니 리스트 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerCart"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="바코드 스캔"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintTop_toBottomOf="@id/textTotalPrice"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/buttonPay"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp" />
+        app:layout_constraintBottom_toTopOf="@id/qrSection" />
 
-    <Button
-        android:id="@+id/buttonPay"
+    <!-- QR 섹션 -->
+    <LinearLayout
+        android:id="@+id/qrSection"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="결제하기"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_marginBottom="12dp"
+        app:layout_constraintBottom_toTopOf="@id/buttonSection"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/buttonPaymentDone"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp" />
+        app:layout_constraintRight_toRightOf="parent">
 
-    <Button
-        android:id="@+id/buttonPaymentDone"
+        <ImageView
+            android:id="@+id/imageQr"
+            android:layout_width="240dp"
+            android:layout_height="240dp"
+            android:contentDescription="결제 QR 코드" />
+    </LinearLayout>
+
+    <!-- 하단 버튼 3개 (아이디 그대로) -->
+    <LinearLayout
+        android:id="@+id/buttonSection"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="결제 완료"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/imageQr"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp" />
-
-    <ImageView
-        android:id="@+id/imageQr"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:contentDescription="결제 QR 코드"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginBottom="16dp" />
+        app:layout_constraintRight_toRightOf="parent">
+
+        <!-- 바코드 스캔 -->
+        <Button
+            android:id="@+id/buttonScan"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:text="바코드 스캔"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/menu_button_bg"
+            android:backgroundTint="@color/oliveyoung_green" />
+
+        <!-- 결제하기 -->
+        <Button
+            android:id="@+id/buttonPay"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:text="결제하기"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/menu_button_bg"
+            android:backgroundTint="@color/oliveyoung_green" />
+
+        <!-- 결제 완료 -->
+        <Button
+            android:id="@+id/buttonPaymentDone"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:text="결제 완료"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/menu_button_bg"
+            android:backgroundTint="@color/oliveyoung_green" />
+    </LinearLayout>
+
+    <!-- 중앙 로딩 -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

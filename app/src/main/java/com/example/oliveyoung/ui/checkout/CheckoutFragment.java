@@ -44,6 +44,7 @@ public class CheckoutFragment extends Fragment {
     private ImageView imageQr;
     private Button buttonPay;
     private Button buttonPaymentDone;
+    private Button buttonBack;   // 🔹 추가: 뒤로가기 버튼
 
     private CartAdapter cartAdapter;
     private List<CartItem> cartItems = new ArrayList<>();
@@ -69,6 +70,10 @@ public class CheckoutFragment extends Fragment {
         imageQr = view.findViewById(R.id.imageQr);
         buttonPay = view.findViewById(R.id.buttonPay);
         buttonPaymentDone = view.findViewById(R.id.buttonPaymentDone);
+        buttonBack = view.findViewById(R.id.buttonBack);   // 🔹 추가
+
+        // 🔹 뒤로가기 버튼: MainActivity.onBackPressed() → 홈으로
+        buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
         recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
         cartAdapter = new CartAdapter();

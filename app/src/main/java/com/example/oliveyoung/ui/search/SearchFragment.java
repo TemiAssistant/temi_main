@@ -36,6 +36,7 @@ public class SearchFragment extends Fragment {
     private EditText editKeyword;
     private Button btnSearch;
     private RecyclerView recyclerProducts;
+    private Button buttonBack;   // 🔹 추가: 뒤로가기 버튼
 
     private ProductApi productApi;
     private ProductAdapter productAdapter;
@@ -60,6 +61,10 @@ public class SearchFragment extends Fragment {
         editKeyword = view.findViewById(R.id.editKeyword);
         btnSearch = view.findViewById(R.id.btnSearch);
         recyclerProducts = view.findViewById(R.id.recyclerProducts);
+        buttonBack = view.findViewById(R.id.buttonBack);   // 🔹 추가
+
+        // 🔹 뒤로가기 버튼 동작: MainActivity의 onBackPressed() 호출 → 홈 화면으로
+        buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
         // Temi 인스턴스
         robot = Robot.getInstance();
@@ -87,11 +92,6 @@ public class SearchFragment extends Fragment {
      * /api/products/search 호출
      */
     private void searchProducts(String keyword) {
-        // ProductApi 인터페이스 정의:
-        // searchProducts(String query, String category, String subCategory,
-        //                String brand, Integer minPrice, Integer maxPrice,
-        //                String skinType, Boolean inStock,
-        //                String sortBy, Integer page, Integer pageSize)
         Call<ProductSearchResponse> call =
                 productApi.searchProducts(
                         keyword,    // query
@@ -158,8 +158,6 @@ public class SearchFragment extends Fragment {
 
     /**
      * 상품 클릭 시 Temi가 해당 zone으로 이동
-     * zone 값은 백엔드에서 "A1" ~ "D5" 형태로 온다고 가정.
-     * Temi에 저장된 로케이션 이름도 동일하다고 보고 robot.goTo(zone) 호출. (추측입니다)
      */
     private void moveToProduct(Product product) {
         if (robot == null || getContext() == null) return;
@@ -173,13 +171,11 @@ public class SearchFragment extends Fragment {
             return;
         }
 
-        // 🔥 Temi에 저장된 위치 목록 확인
         List<String> locations = robot.getLocations();
         Log.d("TEMI/NAV", "Saved locations = " + locations);
         Log.d("TEMI/NAV", "zone from server = '" + zone + "'");
 
         if (!locations.contains(zone)) {
-            // 이름이 정확히 일치하지 않는 경우
             Toast.makeText(getContext(),
                     "'" + zone + "' 위치가 로봇에 정확히 저장돼 있지 않습니다.\n" +
                             "저장된 위치: " + locations,
