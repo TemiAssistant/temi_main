@@ -5,7 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.oliveyoung.R;
@@ -18,34 +17,40 @@ import java.util.Locale;
 
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
 
-    public interface OnItemClickListener {
-        void onItemClick(Product product);
+    public interface OnProductClickListener {
+        void onProductClick(Product product);
     }
 
     private List<Product> items = new ArrayList<>();
-    private final OnItemClickListener listener;
+    private final OnProductClickListener listener;
 
-    public ProductAdapter(OnItemClickListener listener) {
+    public ProductAdapter(List<Product> initialItems,
+                          OnProductClickListener listener) {
+        if (initialItems != null) {
+            this.items = initialItems;
+        }
         this.listener = listener;
     }
 
     public void setItems(List<Product> newItems) {
-        items = newItems;
+        if (newItems == null) {
+            this.items = new ArrayList<>();
+        } else {
+            this.items = new ArrayList<>(newItems);
+        }
         notifyDataSetChanged();
     }
 
-    @NonNull
     @Override
-    public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ProductViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_product, parent, false);
         return new ProductViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
-        Product product = items.get(position);
-        holder.bind(product, listener);
+    public void onBindViewHolder(ProductViewHolder holder, int position) {
+        holder.bind(items.get(position), listener);
     }
 
     @Override
@@ -55,45 +60,38 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {
 
-        TextView textName;
-        TextView textBrandCategory;
-        TextView textPriceAndZone;
+        private final TextView textProductName;
+        private final TextView textBrand;
+        private final TextView textPrice;
+        private final TextView textLocation;
 
-        public ProductViewHolder(@NonNull View itemView) {
+        public ProductViewHolder(View itemView) {
             super(itemView);
-            textName = itemView.findViewById(R.id.textName);
-            textBrandCategory = itemView.findViewById(R.id.textBrandCategory);
-            textPriceAndZone = itemView.findViewById(R.id.textPriceAndZone);
+            textProductName = itemView.findViewById(R.id.textProductName);
+            textBrand = itemView.findViewById(R.id.textBrand);
+            textPrice = itemView.findViewById(R.id.textPrice);
+            textLocation = itemView.findViewById(R.id.textLocation);
         }
 
-        public void bind(Product product, OnItemClickListener listener) {
+        public void bind(final Product product,
+                         final OnProductClickListener listener) {
+            textProductName.setText(product.getName());
+            textBrand.setText(product.getBrand());
 
-            // 상품명
-            textName.setText(product.getName());
-
-            // 브랜드 + 카테고리 / 서브카테고리
-            String brandCategory =
-                    product.getBrand() + " · " +
-                            product.getCategory() + " / " +
-                            product.getSubCategory();
-            textBrandCategory.setText(brandCategory);
-
-            // 가격
             NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
             String priceStr = "₩" + nf.format(product.getPrice());
+            textPrice.setText(priceStr);
 
-            // 존 정보 (null / 빈 문자열 처리)
             String zone = product.getZone();
-            if (zone == null || zone.isEmpty()) {
-                zone = "위치 정보 없음";
+            if (zone == null || zone.trim().isEmpty()) {
+                textLocation.setText("📍 위치 정보 없음");
+            } else {
+                textLocation.setText("📍 " + zone);
             }
 
-            textPriceAndZone.setText(priceStr + " · 존 " + zone);
-
-            // 클릭 이벤트
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
-                    listener.onItemClick(product);
+                    listener.onProductClick(product);
                 }
             });
         }

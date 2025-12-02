@@ -1,25 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.oliveyoung">
+
+    <!-- 카메라 권한 (바코드 / QR 스캔용) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- (옵션) 인터넷 권한: 나중에 API 통신, 서버 연동, Firestore 등 쓰면 필요 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- (옵션) HTTP 통신 쓸 경우를 대비해서 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Oliveyoung">
+
+        <!-- 메인 홈 화면 + 내부 ViewPager를 담당하는 액티비티 -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="landscape">
+            <!-- 앱을 켰을 때 가장 처음 실행되는 액티비티 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
