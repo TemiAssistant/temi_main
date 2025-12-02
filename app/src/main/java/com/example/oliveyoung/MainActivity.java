@@ -1,41 +1,92 @@
 package com.example.oliveyoung;
 
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
-
-import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
+
+    private ViewPager2 viewPager;
+    private LinearLayout buttonFollow;
+    private LinearLayout buttonSearch;
+    private LinearLayout buttonCheckout;
+
+    // 버튼들이 들어 있는 전체 컨테이너
+    private LinearLayout buttonContainer;
+
+    private ImageView imageTemiAssistantLogo;
+    private ImageView imageOliveYoungLogo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // TabLayout과 ViewPager2 연결
-        TabLayout tabLayout = findViewById(R.id.tabLayout); // TabLayout을 찾아 연결
-        ViewPager2 viewPager = findViewById(R.id.viewPager); // ViewPager2를 찾아 연결
-
-        // FragmentAdapter 설정 (각 탭에 해당하는 Fragment 연결)
+        // ViewPager2
+        viewPager = findViewById(R.id.viewPager);
         FragmentAdapter fragmentAdapter = new FragmentAdapter(this);
-        viewPager.setAdapter(fragmentAdapter); // ViewPager에 어댑터 설정
+        viewPager.setAdapter(fragmentAdapter);
+        viewPager.setUserInputEnabled(false);   // 스와이프로는 이동 안 함 (버튼으로만)
 
-        // TabLayout과 ViewPager2를 연결
-        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
-            // 각 탭에 표시할 텍스트 설정
-            switch (position) {
-                case 0:
-                    tab.setText("Follow");
-                    break;
-                case 1:
-                    tab.setText("Search");
-                    break;
-                case 2:
-                    tab.setText("Checkout");
-                    break;
-            }
-        }).attach(); // TabLayout과 ViewPager2를 동기화
+        // 로고들
+        imageTemiAssistantLogo = findViewById(R.id.imageTemiAssistantLogo);
+        imageOliveYoungLogo = findViewById(R.id.imageOliveYoungLogo);
+
+        // 하단 버튼 컨테이너 + 각 버튼
+        buttonContainer = findViewById(R.id.buttonContainer);
+        buttonFollow = findViewById(R.id.buttonFollow);
+        buttonSearch = findViewById(R.id.buttonSearch);
+        buttonCheckout = findViewById(R.id.buttonCheckout);
+
+        // 처음에는 홈(로고 + 버튼만)
+        showHome();
+
+        // 버튼 클릭 리스너 설정
+        buttonFollow.setOnClickListener(v -> openPage(0));
+        buttonSearch.setOnClickListener(v -> openPage(1));
+        buttonCheckout.setOnClickListener(v -> openPage(2));
+    }
+
+    /**
+     * 홈 상태: 로고 + 버튼 보이고, ViewPager는 숨김
+     */
+    private void showHome() {
+        viewPager.setVisibility(View.GONE);
+
+        imageTemiAssistantLogo.setVisibility(View.VISIBLE);
+        imageOliveYoungLogo.setVisibility(View.VISIBLE);
+
+        // 👉 버튼 다시 보이게
+        buttonContainer.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * index에 해당하는 페이지로 이동하면서
+     * 로고/버튼 숨기고 ViewPager만 보여주기
+     */
+    private void openPage(int index) {
+        imageTemiAssistantLogo.setVisibility(View.GONE);
+        imageOliveYoungLogo.setVisibility(View.GONE);
+
+        // 👉 버튼들 통째로 숨기기
+        buttonContainer.setVisibility(View.GONE);
+
+        viewPager.setVisibility(View.VISIBLE);
+        viewPager.setCurrentItem(index, false);
+    }
+
+    @Override
+    public void onBackPressed() {
+        // 프래그먼트 화면(뷰페이저 보이는 상태)이면 → 홈으로 복귀
+        if (viewPager.getVisibility() == View.VISIBLE) {
+            showHome();
+        } else {
+            // 이미 홈이면 → 기존 동작(앱 종료)
+            super.onBackPressed();
+        }
     }
 }
