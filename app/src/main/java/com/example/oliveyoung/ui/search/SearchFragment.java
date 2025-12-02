@@ -2,6 +2,7 @@ package com.example.oliveyoung.ui.search;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -175,5 +176,49 @@ public class SearchFragment extends Fragment {
                 }
             }
         });
+    }
+    /**
+     * 상품 클릭 시 Temi가 해당 zone으로 이동
+     * zone 값은 백엔드에서 "A1" ~ "D5" 형태로 온다고 가정.
+     * Temi에 저장된 로케이션 이름도 동일하다고 보고 robot.goTo(zone) 호출. (추측입니다)
+     */
+    private void moveToProduct(Product product) {
+        if (robot == null || getContext() == null) return;
+
+        String zone = product.getZone();
+
+        if (zone == null || zone.isEmpty()) {
+            Toast.makeText(getContext(),
+                    "이 상품의 위치 정보가 없습니다.",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 🔥 Temi에 저장된 위치 목록 확인
+        List<String> locations = robot.getLocations();
+        Log.d("TEMI/NAV", "Saved locations = " + locations);
+        Log.d("TEMI/NAV", "zone from server = '" + zone + "'");
+
+        if (!locations.contains(zone)) {
+            // 이름이 정확히 일치하지 않는 경우
+            Toast.makeText(getContext(),
+                    "'" + zone + "' 위치가 로봇에 정확히 저장돼 있지 않습니다.\n" +
+                            "저장된 위치: " + locations,
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Toast.makeText(getContext(),
+                "상품 위치로 이동합니다 (zone: " + zone + ")",
+                Toast.LENGTH_SHORT).show();
+
+        try {
+            robot.goTo(zone);
+        } catch (Exception e) {
+            Log.e("TEMI/NAV", "goTo 실패", e);
+            Toast.makeText(getContext(),
+                    "이동 중 오류가 발생했습니다.",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 }
