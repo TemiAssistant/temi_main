@@ -173,14 +173,25 @@ public class SearchFragment extends Fragment {
             return;
         }
 
+        // 🔥 Temi에 저장된 위치 목록 확인
+        List<String> locations = robot.getLocations();
+        Log.d("TEMI/NAV", "Saved locations = " + locations);
+        Log.d("TEMI/NAV", "zone from server = '" + zone + "'");
+
+        if (!locations.contains(zone)) {
+            // 이름이 정확히 일치하지 않는 경우
+            Toast.makeText(getContext(),
+                    "'" + zone + "' 위치가 로봇에 정확히 저장돼 있지 않습니다.\n" +
+                            "저장된 위치: " + locations,
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
         Toast.makeText(getContext(),
                 "상품 위치로 이동합니다 (zone: " + zone + ")",
                 Toast.LENGTH_SHORT).show();
 
-        Log.d("TEMI/NAV", "goTo zone = " + zone);
-
         try {
-            // Temi SDK: 저장된 위치 이름으로 이동
             robot.goTo(zone);
         } catch (Exception e) {
             Log.e("TEMI/NAV", "goTo 실패", e);
@@ -189,4 +200,5 @@ public class SearchFragment extends Fragment {
                     Toast.LENGTH_SHORT).show();
         }
     }
+
 }
