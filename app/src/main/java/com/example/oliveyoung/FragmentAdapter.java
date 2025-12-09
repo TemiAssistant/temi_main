@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
+import com.example.oliveyoung.ui.ai.AiRecommendFragment;
 import com.example.oliveyoung.ui.checkout.CheckoutFragment;
 import com.example.oliveyoung.ui.follow.FollowFragment;
 import com.example.oliveyoung.ui.search.SearchFragment;
@@ -25,6 +26,8 @@ public class FragmentAdapter extends FragmentStateAdapter {
                 return new SearchFragment();
             case 2:
                 return new CheckoutFragment();
+            case 3:
+                return new AiRecommendFragment();
             default:
                 return new FollowFragment();
         }
@@ -32,6 +35,6 @@ public class FragmentAdapter extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        return 3;
+        return 4;
     }
 }

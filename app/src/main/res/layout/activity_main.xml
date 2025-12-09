@@ -27,6 +27,23 @@
         android:adjustViewBounds="true"
         android:layout_marginTop="16dp" />
 
+    <!-- ✅ AI 상품 추천 버튼 (새로 추가) -->
+    <TextView
+        android:id="@+id/buttonAiRecommend"
+        android:layout_width="260dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/imageOliveYoungLogo"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="AI 상품 추천"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:background="@drawable/ai_button_bg"
+        android:clickable="true"
+        android:focusable="true" />
+
     <!-- 하단 버튼 컨테이너 -->
     <LinearLayout
         android:id="@+id/buttonContainer"

@@ -21,6 +21,9 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imageTemiAssistantLogo;
     private ImageView imageOliveYoungLogo;
 
+    // ✅ 새로 추가: AI 상품 추천 버튼 (TextView든 LinearLayout이든 View 로 받아도 됨)
+    private View buttonAiRecommend;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
         buttonSearch = findViewById(R.id.buttonSearch);
         buttonCheckout = findViewById(R.id.buttonCheckout);
 
+        // ✅ AI 상품 추천 버튼 찾기 (activity_main.xml에 android:id="@+id/buttonAiRecommend" 로 정의되어 있어야 함)
+        buttonAiRecommend = findViewById(R.id.buttonAiRecommend);
+
         // 처음에는 홈(로고 + 버튼만)
         showHome();
 
@@ -49,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
         buttonFollow.setOnClickListener(v -> openPage(0));
         buttonSearch.setOnClickListener(v -> openPage(1));
         buttonCheckout.setOnClickListener(v -> openPage(2));
+
+        // ✅ AI 상품 추천 버튼 클릭 시 3번 인덱스 페이지로 이동
+        buttonAiRecommend.setOnClickListener(v -> openPage(3));
     }
 
     /**
@@ -62,6 +71,11 @@ public class MainActivity extends AppCompatActivity {
 
         // 👉 버튼 다시 보이게
         buttonContainer.setVisibility(View.VISIBLE);
+
+        // ✅ AI 버튼도 홈에서 보여야 하므로 VISIBLE
+        if (buttonAiRecommend != null) {
+            buttonAiRecommend.setVisibility(View.VISIBLE);
+        }
     }
 
     /**
@@ -74,6 +88,11 @@ public class MainActivity extends AppCompatActivity {
 
         // 👉 버튼들 통째로 숨기기
         buttonContainer.setVisibility(View.GONE);
+
+        // ✅ 프래그먼트 화면에서는 AI 버튼도 숨김
+        if (buttonAiRecommend != null) {
+            buttonAiRecommend.setVisibility(View.GONE);
+        }
 
         viewPager.setVisibility(View.VISIBLE);
         viewPager.setCurrentItem(index, false);

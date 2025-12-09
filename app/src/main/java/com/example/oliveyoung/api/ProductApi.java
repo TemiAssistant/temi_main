@@ -1,7 +1,9 @@
 package com.example.oliveyoung.api;
 
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 import retrofit2.http.Query;
 
 public interface ProductApi {
@@ -27,4 +29,7 @@ public interface ProductApi {
             @Query("page") Integer page,
             @Query("page_size") Integer pageSize
     );
+
+    @POST("/api/ai/chat")
+    Call<AiChatResponse> getAiRecommendations(@Body AiChatRequest request);
 }
