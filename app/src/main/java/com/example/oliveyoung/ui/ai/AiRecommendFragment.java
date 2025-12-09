@@ -34,6 +34,7 @@ public class AiRecommendFragment extends Fragment {
 
     private EditText editQuestion;
     private Button btnAskAi;
+    private Button buttonBack;
     private TextView textAnalysis;
     private RecyclerView recyclerAi;
     private AiRecommendationAdapter aiAdapter;
@@ -49,6 +50,7 @@ public class AiRecommendFragment extends Fragment {
 
         editQuestion = view.findViewById(R.id.editQuestion);
         btnAskAi = view.findViewById(R.id.btnAskAi);
+        buttonBack = view.findViewById(R.id.buttonBack);
         textAnalysis = view.findViewById(R.id.textAnalysis);
         recyclerAi = view.findViewById(R.id.recyclerAiRecommendations);
 
@@ -59,6 +61,13 @@ public class AiRecommendFragment extends Fragment {
         recyclerAi.setAdapter(aiAdapter);
 
         btnAskAi.setOnClickListener(v -> callAi());
+
+        // 뒤로가기 버튼 클릭 리스너
+        buttonBack.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().onBackPressed();
+            }
+        });
 
         return view;
     }

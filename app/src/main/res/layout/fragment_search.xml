@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light"
-    android:padding="20dp">
+    android:padding="24dp"
+    android:clipToPadding="false">
 
     <!-- 상단 바 -->
     <LinearLayout
@@ -13,10 +14,11 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:paddingVertical="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent">
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="50dp">
 
         <Button
             android:id="@+id/buttonBack"
@@ -24,7 +26,7 @@
             android:layout_height="80dp"
             android:background="@drawable/back_button"
             android:text=""
-            android:elevation="10dp" />
+            android:elevation="4dp" />
 
         <TextView
             android:layout_width="0dp"
@@ -33,96 +35,118 @@
             android:gravity="center"
             android:text="상품 검색"
             android:textColor="@color/text_primary"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.02" />
 
         <View
-            android:layout_width="56dp"
-            android:layout_height="56dp" />
+            android:layout_width="80dp"
+            android:layout_height="80dp" />
     </LinearLayout>
 
-    <!-- 검색 입력 + 버튼 카드 -->
+    <!-- 안내 텍스트 -->
+    <TextView
+        android:id="@+id/textStatus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="💡 찾고 계신 상품을 검색해보세요"
+        android:padding="20dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="18sp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <!-- 검색 입력 카드 -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardSearch"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_margin="12dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="6dp"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintTop_toBottomOf="@id/textStatus"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="12dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/card_background"
+            android:background="@color/white"
             android:orientation="horizontal"
-            android:padding="12dp">
+            android:padding="12dp"
+            android:gravity="center_vertical">
 
-            <!-- 검색어 입력 (ID 유지) -->
+            <!-- 검색 아이콘 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔍"
+                android:textSize="20sp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp" />
+
+            <!-- 검색어 입력 -->
             <EditText
                 android:id="@+id/editKeyword"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="상품 이름을 검색하세요"
+                android:hint="상품명을 입력하세요"
+                android:textColorHint="@color/text_secondary"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:textSize="18sp"
-                android:padding="14dp"
-                android:background="@android:color/transparent" />
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                android:background="@android:color/transparent"
+                android:textColor="@color/text_primary" />
 
-            <!-- 검색 버튼 (ID 유지) -->
+            <!-- 검색 버튼 -->
             <Button
                 android:id="@+id/btnSearch"
-                android:layout_width="96dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:minWidth="80dp"
                 android:minHeight="48dp"
                 android:text="검색"
                 android:textColor="@color/white"
-                android:textSize="18sp"
-                android:backgroundTint="@color/oliveyoung_green" />
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:background="@drawable/button_square_green"
+                android:paddingHorizontal="20dp"
+                android:elevation="0dp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
-
-    <!-- 상태 텍스트 -->
-    <TextView
-        android:id="@+id/textStatus"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="상품명을 입력하고 검색 버튼을 눌러주세요."
-        android:padding="16dp"
-        android:textColor="@color/text_secondary"
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/cardSearch"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="16dp" />
 
     <!-- 로딩 ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:indeterminateTint="@color/oliveyoung_green"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:visibility="gone" />
 
-    <!-- 검색 결과 리스트 (ID 유지) -->
+    <!-- 검색 결과 리스트 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerProducts"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:padding="16dp"
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="16dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/textStatus"
+        app:layout_constraintTop_toBottomOf="@id/cardSearch"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="12dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -42,9 +43,10 @@ public class CheckoutFragment extends Fragment {
     private TextView textTotalPrice;
     private RecyclerView recyclerCart;
     private ImageView imageQr;
-    private Button buttonPay;
-    private Button buttonPaymentDone;
-    private Button buttonBack;   // 🔹 추가: 뒤로가기 버튼
+    private LinearLayout buttonScan;           // ✅ Button → LinearLayout
+    private LinearLayout buttonPay;            // ✅ Button → LinearLayout
+    private LinearLayout buttonPaymentDone;    // ✅ Button → LinearLayout
+    private Button buttonBack;
 
     private CartAdapter cartAdapter;
     private List<CartItem> cartItems = new ArrayList<>();
@@ -68,18 +70,19 @@ public class CheckoutFragment extends Fragment {
         textTotalPrice = view.findViewById(R.id.textTotalPrice);
         recyclerCart = view.findViewById(R.id.recyclerCart);
         imageQr = view.findViewById(R.id.imageQr);
+        buttonScan = view.findViewById(R.id.buttonScan);
         buttonPay = view.findViewById(R.id.buttonPay);
         buttonPaymentDone = view.findViewById(R.id.buttonPaymentDone);
-        buttonBack = view.findViewById(R.id.buttonBack);   // 🔹 추가
+        buttonBack = view.findViewById(R.id.buttonBack);
 
-        // 🔹 뒤로가기 버튼: MainActivity.onBackPressed() → 홈으로
+        // 뒤로가기 버튼: MainActivity.onBackPressed() → 홈으로
         buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
         recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
         cartAdapter = new CartAdapter();
         recyclerCart.setAdapter(cartAdapter);
 
-        // 🔹 orders/{ORDER_ID} 문서를 실시간으로 구독
+        // orders/{ORDER_ID} 문서를 실시간으로 구독
         subscribeOrder();
 
         buttonPay.setOnClickListener(v -> generatePaymentQr());

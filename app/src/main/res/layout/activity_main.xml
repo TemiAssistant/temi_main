@@ -6,43 +6,19 @@
     android:background="@color/background_light"
     android:padding="20dp">
 
-    <!-- TemiAssistant 로고 -->
-    <ImageView
-        android:id="@+id/imageTemiAssistantLogo"
-        android:layout_width="420dp"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_above="@id/imageOliveYoungLogo"
-        android:layout_marginBottom="32dp"
-        android:src="@drawable/temiassistant_logo"
-        android:adjustViewBounds="true" />
-
     <!-- OliveYoung 로고 -->
     <ImageView
         android:id="@+id/imageOliveYoungLogo"
-        android:layout_width="500dp"
+        android:layout_width="850dp"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_above="@id/buttonContainer"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="200dp"
+        android:layout_marginBottom="20dp"
         android:src="@drawable/oliveyoung_logo"
         android:adjustViewBounds="true"
-        android:layout_marginTop="16dp" />
-
-    <!-- ✅ AI 상품 추천 버튼 (새로 추가) -->
-    <TextView
-        android:id="@+id/buttonAiRecommend"
-        android:layout_width="260dp"
-        android:layout_height="48dp"
-        android:layout_below="@id/imageOliveYoungLogo"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:text="AI 상품 추천"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:background="@drawable/ai_button_bg"
-        android:clickable="true"
-        android:focusable="true" />
+        android:gravity="center" />
 
     <!-- 하단 버튼 컨테이너 -->
     <LinearLayout
@@ -55,7 +31,7 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <!-- 따라오기 -->
+        <!-- 따라오기 (테미) -->
         <LinearLayout
             android:id="@+id/buttonFollow"
             android:layout_width="0dp"
@@ -69,12 +45,11 @@
             android:clickable="true"
             android:focusable="true">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="👣"
-                android:textColor="@color/white"
-                android:textSize="48sp" />
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/ic_temi_robot"
+                android:contentDescription="테미 로봇" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -100,18 +75,47 @@
             android:clickable="true"
             android:focusable="true">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🔍"
-                android:textColor="@color/white"
-                android:textSize="48sp" />
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/ic_search"
+                android:contentDescription="검색 아이콘" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="검색"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- AI 상품 추천 -->
+        <LinearLayout
+            android:id="@+id/buttonAiRecommend"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:background="@drawable/menu_button_bg"
+            android:backgroundTint="@color/oliveyoung_green"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/ic_ai_recommend"
+                android:contentDescription="AI 추천 아이콘" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="AI 추천"
                 android:textColor="@color/white"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -131,12 +135,11 @@
             android:clickable="true"
             android:focusable="true">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="💳"
-                android:textColor="@color/white"
-                android:textSize="48sp" />
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/ic_payment"
+                android:contentDescription="결제 아이콘" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -156,7 +159,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/buttonContainer"
-        android:layout_below="@id/imageTemiAssistantLogo"
         android:visibility="gone" />
 
 </RelativeLayout>

@@ -18,10 +18,9 @@ public class MainActivity extends AppCompatActivity {
     // 버튼들이 들어 있는 전체 컨테이너
     private LinearLayout buttonContainer;
 
-    private ImageView imageTemiAssistantLogo;
     private ImageView imageOliveYoungLogo;
 
-    // ✅ 새로 추가: AI 상품 추천 버튼 (TextView든 LinearLayout이든 View 로 받아도 됨)
+    // ✅ 새로 추가: AI 상품 추천 버튼
     private View buttonAiRecommend;
 
     @Override
@@ -35,8 +34,7 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(fragmentAdapter);
         viewPager.setUserInputEnabled(false);   // 스와이프로는 이동 안 함 (버튼으로만)
 
-        // 로고들
-        imageTemiAssistantLogo = findViewById(R.id.imageTemiAssistantLogo);
+        // 로고
         imageOliveYoungLogo = findViewById(R.id.imageOliveYoungLogo);
 
         // 하단 버튼 컨테이너 + 각 버튼
@@ -45,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         buttonSearch = findViewById(R.id.buttonSearch);
         buttonCheckout = findViewById(R.id.buttonCheckout);
 
-        // ✅ AI 상품 추천 버튼 찾기 (activity_main.xml에 android:id="@+id/buttonAiRecommend" 로 정의되어 있어야 함)
+        // ✅ AI 상품 추천 버튼 찾기
         buttonAiRecommend = findViewById(R.id.buttonAiRecommend);
 
         // 처음에는 홈(로고 + 버튼만)
@@ -66,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
     private void showHome() {
         viewPager.setVisibility(View.GONE);
 
-        imageTemiAssistantLogo.setVisibility(View.VISIBLE);
         imageOliveYoungLogo.setVisibility(View.VISIBLE);
 
         // 👉 버튼 다시 보이게
@@ -83,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
      * 로고/버튼 숨기고 ViewPager만 보여주기
      */
     private void openPage(int index) {
-        imageTemiAssistantLogo.setVisibility(View.GONE);
         imageOliveYoungLogo.setVisibility(View.GONE);
 
         // 👉 버튼들 통째로 숨기기
