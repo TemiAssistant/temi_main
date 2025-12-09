@@ -1,0 +1,32 @@
+<!-- res/drawable/ic_payment_white.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- 카드 외곽 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:pathData="M3,6h18a1,1 0 0,1 1,1v10a1,1 0 0,1 -1,1H3a1,1 0 0,1 -1,-1V7a1,1 0 0,1 1,-1z" />
+
+    <!-- 카드 상단 stripe -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M3,9h18" />
+
+    <!-- 카드 하단 결제 라인(옵션) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M7,14h6" />
+</vector>

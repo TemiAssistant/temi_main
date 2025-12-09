@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="75dp"
+    android:height="75dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- 발바닥 메인 부분 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,18 C19,18 15,22 15,27 C15,32 17,38 24,38 C31,38 33,32 33,27 C33,22 29,18 24,18 Z"/>
+
+    <!-- 발가락 1 (가장 큰) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18,12 m-3,0 a3,3.5 0,1,1 6,0 a3,3.5 0,1,1 -6,0"/>
+
+    <!-- 발가락 2 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,10 m-2.5,0 a2.5,3 0,1,1 5,0 a2.5,3 0,1,1 -5,0"/>
+
+    <!-- 발가락 3 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,11 m-2.5,0 a2.5,3 0,1,1 5,0 a2.5,3 0,1,1 -5,0"/>
+
+    <!-- 발가락 4 (가장 작은) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M35,13 m-2,0 a2,2.5 0,1,1 4,0 a2,2.5 0,1,1 -4,0"/>
+</vector>

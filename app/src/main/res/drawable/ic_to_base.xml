@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="75dp"
+    android:height="75dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 집(베이스) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,4l8,6h-3v8h-4v-5h-2v5H7v-8H4z"/>
+    <!-- 돌아가기 화살표 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11,10v2H7l3,3l-3,3H5l3,-3l-3,-3h6z"/>
+</vector>
