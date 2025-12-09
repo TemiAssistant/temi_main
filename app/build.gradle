@@ -36,6 +36,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 
     // 🔹 Firebase BoM - 항상 제일 먼저
     implementation platform('com.google.firebase:firebase-bom:32.8.1')

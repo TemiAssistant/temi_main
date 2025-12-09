@@ -1,14 +1,18 @@
 package com.example.oliveyoung.ui.checkout;
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,46 +21,61 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.oliveyoung.R;
+import com.example.oliveyoung.api.CartApi;
+import com.example.oliveyoung.api.CartResponse;
+import com.example.oliveyoung.api.OrderResponse;
+import com.example.oliveyoung.api.PaymentApi;
+import com.example.oliveyoung.api.PaymentInitiateRequest;
+import com.example.oliveyoung.api.PaymentInitiateResponse;
+import com.example.oliveyoung.api.PaymentItem;
 import com.example.oliveyoung.api.Product;
-import com.example.oliveyoung.ui.checkout.CartAdapter;
-import com.example.oliveyoung.ui.checkout.CartItem;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.robotemi.sdk.Robot;
-import com.robotemi.sdk.TtsRequest;
+import com.example.oliveyoung.api.RemoteCartItem;
+import com.example.oliveyoung.api.RetrofitClient;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CheckoutFragment extends Fragment {
 
-    private static final String ORDER_ID = "test_order_1";      // 임시: 현재 세션의 주문 ID
-    private static final String BASE_LOCATION_NAME = "충전소";   // Temi 베이스 위치 이름
+    private static final String TAG = "CheckoutFragment";
 
-    private Robot robot;
-    private FirebaseFirestore db;
+    // Temi / Arduino와 매칭되는 디바이스 ID (임시 하드코딩)
+    private static final String DEVICE_ID = "temi-001";
 
+    // UI
     private TextView textStatus;
     private TextView textTotalPrice;
+    private TextView textItemCount;
     private RecyclerView recyclerCart;
+    private LinearLayout buttonScan;
+    private LinearLayout buttonPay;
+    private LinearLayout buttonPaymentDone;
     private ImageView imageQr;
-    private LinearLayout buttonScan;           // ✅ Button → LinearLayout
-    private LinearLayout buttonPay;            // ✅ Button → LinearLayout
-    private LinearLayout buttonPaymentDone;    // ✅ Button → LinearLayout
-    private Button buttonBack;
+    private ProgressBar progressBar;
 
+    // 장바구니 화면용
+    private final List<CartItem> cartItems = new ArrayList<>();
     private CartAdapter cartAdapter;
-    private List<CartItem> cartItems = new ArrayList<>();
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        robot = Robot.getInstance();
-        db = FirebaseFirestore.getInstance();
-    }
+    // API
+    private CartApi cartApi;
+    private PaymentApi paymentApi;
+
+    // 결제 상태
+    private String currentOrderId;
+    private String currentCheckoutUrl;
+
+    private final NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
 
     @Nullable
     @Override
@@ -66,183 +85,330 @@ public class CheckoutFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_checkout, container, false);
 
+        // -------- 뷰 바인딩 --------
         textStatus = view.findViewById(R.id.textStatus);
         textTotalPrice = view.findViewById(R.id.textTotalPrice);
+        textItemCount = view.findViewById(R.id.textItemCount);
         recyclerCart = view.findViewById(R.id.recyclerCart);
-        imageQr = view.findViewById(R.id.imageQr);
         buttonScan = view.findViewById(R.id.buttonScan);
         buttonPay = view.findViewById(R.id.buttonPay);
         buttonPaymentDone = view.findViewById(R.id.buttonPaymentDone);
-        buttonBack = view.findViewById(R.id.buttonBack);
+        imageQr = view.findViewById(R.id.imageQr);
+        progressBar = view.findViewById(R.id.progressBar);
 
-        // 뒤로가기 버튼: MainActivity.onBackPressed() → 홈으로
-        buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
+        View buttonBack = view.findViewById(R.id.buttonBack);
+        if (buttonBack != null) {
+            buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
+        }
 
-        recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
+        // -------- Retrofit APIs --------
+        cartApi = RetrofitClient.getClient().create(CartApi.class);
+        paymentApi = RetrofitClient.getClient().create(PaymentApi.class);
+
+        // -------- RecyclerView --------
         cartAdapter = new CartAdapter();
+        recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerCart.setAdapter(cartAdapter);
 
-        // orders/{ORDER_ID} 문서를 실시간으로 구독
-        subscribeOrder();
+        // 처음 진입할 때 서버에서 장바구니 불러오기
+        fetchCartFromServer();
 
-        buttonPay.setOnClickListener(v -> generatePaymentQr());
-        buttonPaymentDone.setOnClickListener(v -> finishPayment());
+        // 버튼 리스너
+        buttonScan.setOnClickListener(v -> {
+            // 바코드 스캔은 외부 아두이노가 담당
+            Toast.makeText(getContext(),
+                    "바코드 스캔은 외부 스캐너에서 처리됩니다.",
+                    Toast.LENGTH_SHORT).show();
+        });
+
+        buttonPay.setOnClickListener(v -> startPayment());
+
+        buttonPaymentDone.setOnClickListener(v -> checkPaymentStatus());
 
         return view;
     }
 
-    /**
-     * orders/{ORDER_ID} 문서를 snapshot listener로 구독
-     */
-    private void subscribeOrder() {
-        db.collection("orders")
-                .document(ORDER_ID)
-                .addSnapshotListener((snapshot, e) -> {
-                    if (e != null) {
-                        textStatus.setText("주문 정보를 불러오는 중 오류가 발생했습니다: " + e.getMessage());
-                        speak("주문 정보를 불러오는 중 오류가 발생했습니다.");
-                        return;
-                    }
-                    if (snapshot == null || !snapshot.exists()) {
-                        textStatus.setText("현재 진행 중인 주문이 없습니다.");
-                        return;
-                    }
+    // ==============================
+    // 1) 서버에서 장바구니 불러오기
+    // ==============================
+    private void fetchCartFromServer() {
+        showLoading(true);
+        textStatus.setText("장바구니를 불러오는 중입니다...");
 
-                    updateCartFromOrder(snapshot);
-                });
-    }
+        cartApi.getCurrentCart(DEVICE_ID).enqueue(new Callback<CartResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<CartResponse> call,
+                                   @NonNull Response<CartResponse> response) {
+                showLoading(false);
 
-    /**
-     * orders 문서의 items 배열을 읽어와서 cartItems를 갱신
-     */
-    private void updateCartFromOrder(DocumentSnapshot snapshot) {
-        Object itemsObj = snapshot.get("items");
-        if (!(itemsObj instanceof List)) {
-            cartItems.clear();
-            cartAdapter.setItems(cartItems);
-            updateTotalPrice();
-            textStatus.setText("장바구니가 비어 있습니다.");
-            return;
-        }
+                if (!response.isSuccessful() || response.body() == null) {
+                    Log.e(TAG, "장바구니 조회 실패: HTTP " + response.code());
+                    Toast.makeText(getContext(),
+                            "장바구니 조회 실패 (" + response.code() + ")",
+                            Toast.LENGTH_SHORT).show();
+                    textStatus.setText("장바구니를 불러오지 못했습니다.");
+                    return;
+                }
 
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> itemList = (List<Map<String, Object>>) itemsObj;
-
-        // 임시: Firestore join 단순화를 위해 한 번 비우고 다시 로딩
-        cartItems.clear();
-
-        for (Map<String, Object> itemMap : itemList) {
-            String productId = null;
-            Long quantityLong = 0L;
-
-            if (itemMap.get("product_id") != null) {
-                productId = itemMap.get("product_id").toString();
-            }
-            if (itemMap.get("quantity") instanceof Long) {
-                quantityLong = (Long) itemMap.get("quantity");
-            } else if (itemMap.get("quantity") instanceof Integer) {
-                quantityLong = ((Integer) itemMap.get("quantity")).longValue();
-            }
-
-            int quantity = quantityLong.intValue();
-            if (TextUtils.isEmpty(productId) || quantity <= 0) continue;
-
-            loadProductAndAddToCart(productId, quantity);
-        }
-    }
-
-    /**
-     * products 컬렉션에서 product_id로 상품 정보를 가져와 CartItem으로 추가
-     */
-    private void loadProductAndAddToCart(String productId, int quantity) {
-        // 여기서는 문서 ID == product_id 라고 가정 (추측입니다)
-        db.collection("products")
-                .document(productId)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (!doc.exists()) return;
-
-                    Product product = doc.toObject(Product.class);
-                    if (product == null) return;
-
-                    CartItem item = new CartItem(product);
-                    // CartItem 기본 quantity=1 이라서 맞춰줌
-                    for (int i = 1; i < quantity; i++) {
-                        item.increase();
-                    }
-                    cartItems.add(item);
-
+                CartResponse body = response.body();
+                if (!body.isSuccess() || body.getItems() == null) {
+                    Toast.makeText(getContext(),
+                            "장바구니가 비어있거나 오류가 발생했습니다.",
+                            Toast.LENGTH_SHORT).show();
+                    textStatus.setText("장바구니가 비어 있습니다.");
+                    cartItems.clear();
                     cartAdapter.setItems(cartItems);
-                    updateTotalPrice();
-                })
-                .addOnFailureListener(e -> {
-                    // 특정 상품 하나 못 불러온 건 굳이 사용자에게 말 안 해도 됨. 필요하면 로그만.
-                });
+                    updateTotalPriceAndCount();
+                    return;
+                }
+
+                // RemoteCartItem -> 화면용 CartItem 으로 변환
+                cartItems.clear();
+                for (RemoteCartItem r : body.getItems()) {
+
+                    // UI에서 사용할 Product 객체 생성
+                    Product p = new Product(
+                            r.getProduct_id(),
+                            r.getName(),
+                            r.getPrice(),
+                            null,   // brand  (필요하면 API에 추가)
+                            null,   // category
+                            null    // imageUrl
+                    );
+
+                    CartItem ci = new CartItem(p);
+                    // CartItem 은 기본 quantity=1 이라, remote quantity 반영 필요
+                    for (int i = 1; i < r.getQuantity(); i++) {
+                        ci.increase();
+                    }
+                    cartItems.add(ci);
+                }
+
+                cartAdapter.setItems(cartItems);
+                updateTotalPriceAndCount();
+
+                textStatus.setText("바코드를 스캔해서 상품을 담아주세요");
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<CartResponse> call,
+                                  @NonNull Throwable t) {
+                showLoading(false);
+                Log.e(TAG, "장바구니 조회 통신 오류: " + t.getMessage(), t);
+                Toast.makeText(getContext(),
+                        "장바구니 조회 중 오류가 발생했습니다.",
+                        Toast.LENGTH_SHORT).show();
+                textStatus.setText("장바구니를 불러오는 중 오류가 발생했습니다.");
+            }
+        });
     }
 
-    private void updateTotalPrice() {
+    /** 합계 & Item n 텍스트 갱신 */
+    private void updateTotalPriceAndCount() {
         long total = 0;
+        int count = 0;
         for (CartItem item : cartItems) {
             total += item.getLineTotal();
+            count += item.getQuantity();
         }
-        NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
-        textTotalPrice.setText("총 금액: ₩" + nf.format(total));
+
+        textTotalPrice.setText("₩" + nf.format(total));
+        if (textItemCount != null) {
+            textItemCount.setText("Item " + count);
+        }
     }
 
-    /**
-     * 결제하기 버튼: 총 금액 기준으로 QR 생성
-     */
-    private void generatePaymentQr() {
-        long total = 0;
+    // ==============================
+    // 2) 결제 시작 (/api/payments/initiate)
+    // ==============================
+    private void startPayment() {
+//        if (cartItems.isEmpty()) {
+//            Toast.makeText(getContext(), "장바구니가 비어 있습니다.", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+
+        List<PaymentItem> paymentItems = new ArrayList<>();
+        int totalAmount = 0;
+
         for (CartItem item : cartItems) {
-            total += item.getLineTotal();
+            Product p = item.getProduct();
+            int quantity = item.getQuantity();
+
+            String productId = p.getProductId();
+            String name = p.getName();
+            int price = p.getPrice();
+
+            totalAmount += price * quantity;
+
+            paymentItems.add(new PaymentItem(
+                    productId,
+                    name,
+                    quantity,
+                    price
+            ));
         }
 
-        if (total == 0) {
-            textStatus.setText("장바구니에 상품이 없습니다.");
-            speak("장바구니에 담긴 상품이 없습니다.");
+        PaymentInitiateRequest request = new PaymentInitiateRequest(
+                DEVICE_ID,             // customer_id (Temi ID 또는 고객 ID)
+                "매장고객",             // customer_name
+                null,                  // email
+                "00000000000",         // phone
+                paymentItems,
+                totalAmount,
+                0,
+                totalAmount
+        );
+
+        showLoading(true);
+        textStatus.setText("결제 요청 중입니다...");
+
+        paymentApi.initiatePayment(request).enqueue(new Callback<PaymentInitiateResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<PaymentInitiateResponse> call,
+                                   @NonNull Response<PaymentInitiateResponse> response) {
+                showLoading(false);
+
+                if (!response.isSuccessful() || response.body() == null) {
+                    String msg = "결제 시작 실패 (HTTP " + response.code() + ")";
+                    Log.e(TAG, msg);
+                    Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                    textStatus.setText("결제 시작에 실패했습니다.");
+                    return;
+                }
+
+                PaymentInitiateResponse body = response.body();
+                if (!body.isSuccess()) {
+                    Log.e(TAG, "결제 시작 실패: success=false");
+                    Toast.makeText(getContext(), "결제 시작 실패", Toast.LENGTH_SHORT).show();
+                    textStatus.setText("결제 시작에 실패했습니다.");
+                    return;
+                }
+
+                currentOrderId = body.getOrder_id();
+                currentCheckoutUrl = body.getCheckout_url();
+
+                textStatus.setText("고객 앱에서 결제를 진행해주세요.\n결제가 끝나면 '결제 완료' 버튼을 눌러주세요.");
+                Toast.makeText(getContext(), "결제 QR/URL이 생성되었습니다.", Toast.LENGTH_SHORT).show();
+
+                // ---- QR 코드 생성 & 표시 ----
+                String qrData = body.getQr_data();
+                if (qrData == null || qrData.isEmpty()) {
+                    qrData = currentCheckoutUrl;  // 혹시 qr_data 없으면 URL로 생성
+                }
+
+                if (!TextUtils.isEmpty(qrData)) {
+                    Bitmap qrBitmap = generateQrCode(qrData, 600);
+                    if (qrBitmap != null) {
+                        imageQr.setImageBitmap(qrBitmap);
+                        imageQr.setVisibility(View.VISIBLE);
+                    } else {
+                        textStatus.setText("QR 코드 생성 중 오류가 발생했습니다.");
+                    }
+                } else {
+                    textStatus.setText("QR 데이터가 없습니다.");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<PaymentInitiateResponse> call,
+                                  @NonNull Throwable t) {
+                showLoading(false);
+                Log.e(TAG, "결제 시작 통신 오류: " + t.getMessage(), t);
+                Toast.makeText(getContext(), "결제 요청 실패: " + t.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+                textStatus.setText("결제 시작 중 오류가 발생했습니다.");
+            }
+        });
+    }
+
+    // ==============================
+    // 3) 결제 완료 확인 (/api/payments/orders/{orderId})
+    // ==============================
+    private void checkPaymentStatus() {
+        if (TextUtils.isEmpty(currentOrderId)) {
+            Toast.makeText(getContext(), "먼저 '결제하기'를 눌러 결제를 시작하세요.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        textStatus.setText("총 금액 " + total + "원 결제용 QR을 생성합니다.");
-        speak("총 금액 " + total + "원 결제용 QR 코드를 생성합니다.");
+        showLoading(true);
+        textStatus.setText("결제 상태를 확인하는 중입니다...");
 
-        // 결제 서버/PG에서 원하는 형식으로 payload 구성
-        String payload = "orderId=" + ORDER_ID + "&amount=" + total;
+        paymentApi.getOrder(currentOrderId).enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<OrderResponse> call,
+                                   @NonNull Response<OrderResponse> response) {
+                showLoading(false);
 
-        // TODO: ZXing 등으로 payload → QR Bitmap 생성
-        // Bitmap qrBitmap = createQrCodeBitmap(payload);
-        // imageQr.setImageBitmap(qrBitmap);
+                if (!response.isSuccessful() || response.body() == null) {
+                    Log.e(TAG, "주문 조회 실패: HTTP " + response.code());
+                    Toast.makeText(getContext(),
+                            "주문 조회 실패 (" + response.code() + ")",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-        // (선택) orders/{ORDER_ID}.status = "pending_payment" 로 업데이트
-        db.collection("orders").document(ORDER_ID)
-                .update("status", "pending_payment");
+                OrderResponse body = response.body();
+                if (!body.isSuccess() || body.getOrder() == null) {
+                    Toast.makeText(getContext(), "주문 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String paymentStatus = body.getOrder().getPayment_status();
+
+                if ("DONE".equals(paymentStatus)) {
+                    textStatus.setText("결제가 완료되었습니다. 감사합니다!");
+                    Toast.makeText(getContext(), "결제 완료!", Toast.LENGTH_SHORT).show();
+                    // TODO: 장바구니 초기화, 홈 이동, /api/cart/clear 호출 등
+                } else {
+                    textStatus.setText("현재 결제 상태: " + paymentStatus);
+                    Toast.makeText(getContext(),
+                            "아직 결제가 완료되지 않았습니다.\n상태: " + paymentStatus,
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<OrderResponse> call,
+                                  @NonNull Throwable t) {
+                showLoading(false);
+                Log.e(TAG, "주문 조회 통신 오류: " + t.getMessage(), t);
+                Toast.makeText(getContext(),
+                        "주문 조회 중 오류가 발생했습니다.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    /**
-     * 결제 완료 버튼: Firestore 상태 변경 + Temi 안내 + 베이스 이동
-     */
-    private void finishPayment() {
-        textStatus.setText("결제가 완료되었습니다. 베이스로 복귀합니다.");
-        speak("이용해 주셔서 감사합니다. 이제 베이스로 돌아가겠습니다.");
+    // ==============================
+    // 공통 유틸
+    // ==============================
 
-        // 주문 상태 업데이트
-        db.collection("orders").document(ORDER_ID)
-                .update("isPaid", true, "status", "paid");
-
-        // 로컬 UI 정리
-        cartItems.clear();
-        cartAdapter.setItems(cartItems);
-        updateTotalPrice();
-        imageQr.setImageBitmap(null);
-
-        // Temi 베이스로 이동
-        robot.goTo(BASE_LOCATION_NAME);
+    private void showLoading(boolean show) {
+        if (progressBar != null) {
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        boolean enable = !show;
+        buttonScan.setEnabled(enable);
+        buttonPay.setEnabled(enable);
+        buttonPaymentDone.setEnabled(enable);
     }
 
-    private void speak(String text) {
-        if (robot == null) return;
-        TtsRequest ttsRequest = TtsRequest.create(text, false);
-        robot.speak(ttsRequest);
+    /** QR 코드 비트맵 생성 */
+    private Bitmap generateQrCode(String text, int size) {
+        try {
+            QRCodeWriter writer = new QRCodeWriter();
+            BitMatrix bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, size, size);
+
+            Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
+            for (int x = 0; x < size; x++) {
+                for (int y = 0; y < size; y++) {
+                    bitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            return bitmap;
+        } catch (WriterException e) {
+            Log.e(TAG, "QR 코드 생성 실패: " + e.getMessage(), e);
+            return null;
+        }
     }
 }

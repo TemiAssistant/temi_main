@@ -40,6 +40,20 @@ public class Product {
     @SerializedName("image_url")
     private String imageUrl;
 
+    public Product(String productId,
+                   String name,
+                   int price,
+                   String brand,
+                   String category,
+                   String imageUrl) {
+        this.productId = productId;
+        this.name = name;
+        this.price = price;
+        this.brand = brand;
+        this.category = category;
+        this.imageUrl = imageUrl;
+    }
+
     public String getProductId() { return productId; }
     public String getName() { return name; }
     public String getBrand() { return brand; }

@@ -16,10 +16,10 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingVertical="16dp"
+        android:layout_marginTop="50dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="50dp">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <Button
             android:id="@+id/buttonBack"
@@ -40,12 +40,13 @@
             android:textStyle="bold"
             android:letterSpacing="0.02" />
 
+        <!-- 오른쪽 여백용 더미 뷰 -->
         <View
             android:layout_width="80dp"
             android:layout_height="80dp" />
     </LinearLayout>
 
-    <!-- 안내 텍스트 -->
+    <!-- 안내/상태 텍스트 -->
     <TextView
         android:id="@+id/textStatus"
         android:layout_width="0dp"
@@ -55,10 +56,10 @@
         android:padding="16dp"
         android:gravity="center"
         android:textColor="@color/text_secondary"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/topBar"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="8dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- 총 금액 카드 -->
     <androidx.cardview.widget.CardView
@@ -66,38 +67,54 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="12dp"
+        android:layout_marginTop="16dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="6dp"
         app:layout_constraintTop_toBottomOf="@id/textStatus"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="16dp">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/white"
-            android:orientation="horizontal"
-            android:padding="24dp"
-            android:gravity="center_vertical">
+            android:orientation="vertical"
+            android:padding="20dp">
 
-            <TextView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="총 금액"
-                android:textSize="22sp"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="총 금액"
+                    android:textSize="22sp"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/textTotalPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₩0"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/oliveyoung_green" />
+            </LinearLayout>
+
+            <!-- 아이템 개수 표시 -->
             <TextView
-                android:id="@+id/textTotalPrice"
-                android:layout_width="wrap_content"
+                android:id="@+id/textItemCount"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="₩0"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:textColor="@color/oliveyoung_green" />
+                android:layout_marginTop="6dp"
+                android:text="Item 0"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -109,24 +126,14 @@
         android:clipToPadding="false"
         android:paddingHorizontal="8dp"
         android:paddingVertical="12dp"
+        android:overScrollMode="never"
         app:layout_constraintTop_toBottomOf="@id/cardTotalPrice"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/imageQr"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="12dp" />
 
-    <!-- QR 이미지 -->
-    <ImageView
-        android:id="@+id/imageQr"
-        android:layout_width="1dp"
-        android:layout_height="1dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/buttonSection"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:contentDescription="결제 QR 코드" />
-
-    <!-- 하단 버튼 영역 -->
+    <!-- 하단 버튼 섹션 -->
     <LinearLayout
         android:id="@+id/buttonSection"
         android:layout_width="0dp"
@@ -134,12 +141,12 @@
         android:gravity="center"
         android:orientation="horizontal"
         android:padding="8dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginBottom="16dp">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- 바코드 스캔 버튼 -->
+        <!-- 바코드 스캔 -->
         <LinearLayout
             android:id="@+id/buttonScan"
             android:layout_width="0dp"
@@ -169,7 +176,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- 결제하기 버튼 -->
+        <!-- 결제하기 -->
         <LinearLayout
             android:id="@+id/buttonPay"
             android:layout_width="0dp"
@@ -199,7 +206,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- 결제 완료 버튼 -->
+        <!-- 결제 완료 -->
         <LinearLayout
             android:id="@+id/buttonPaymentDone"
             android:layout_width="0dp"
@@ -228,10 +235,22 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
         </LinearLayout>
-
     </LinearLayout>
 
-    <!-- 로딩 -->
+    <!-- QR 코드 (결제 시작 후 노출) -->
+    <ImageView
+        android:id="@+id/imageQr"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:elevation="20dp"
+        android:visibility="gone"
+        android:contentDescription="결제 QR 코드"
+        app:layout_constraintTop_toBottomOf="@id/recyclerCart"
+        app:layout_constraintBottom_toTopOf="@id/buttonSection"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 로딩 인디케이터 -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="64dp"
@@ -240,7 +259,7 @@
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
