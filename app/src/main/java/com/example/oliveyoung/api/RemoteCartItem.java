@@ -1,13 +1,23 @@
-// RemoteCartItem.java
 package com.example.oliveyoung.api;
 
+import com.google.gson.annotations.SerializedName;
+
 public class RemoteCartItem {
-    private String product_id;
+
+    @SerializedName("product_id")
+    private String productId;
+
+    @SerializedName("name")
     private String name;
+
+    @SerializedName("price")
     private int price;
+
+    @SerializedName("quantity")
     private int quantity;
 
-    public String getProduct_id() { return product_id; }
+    // --- getter들 ---
+    public String getProductId() { return productId; }
     public String getName() { return name; }
     public int getPrice() { return price; }
     public int getQuantity() { return quantity; }

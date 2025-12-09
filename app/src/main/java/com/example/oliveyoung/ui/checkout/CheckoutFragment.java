@@ -53,8 +53,6 @@ public class CheckoutFragment extends Fragment {
 
     private static final String TAG = "CheckoutFragment";
 
-    // Temi / Arduino와 매칭되는 디바이스 ID (임시 하드코딩)
-    private static final String DEVICE_ID = "temi-001";
 
     // UI
     private TextView textStatus;
@@ -163,7 +161,7 @@ public class CheckoutFragment extends Fragment {
         showLoading(true);
         textStatus.setText("장바구니를 불러오는 중입니다...");
 
-        cartApi.getCurrentCart(DEVICE_ID).enqueue(new Callback<CartResponse>() {
+        cartApi.getCurrentCart().enqueue(new Callback<CartResponse>() {
             @Override
             public void onResponse(@NonNull Call<CartResponse> call,
                                    @NonNull Response<CartResponse> response) {
@@ -196,7 +194,7 @@ public class CheckoutFragment extends Fragment {
 
                     // UI에서 사용할 Product 객체 생성
                     Product p = new Product(
-                            r.getProduct_id(),
+                            r.getProductId(),
                             r.getName(),
                             r.getPrice(),
                             null,   // brand  (필요하면 API에 추가)
@@ -277,7 +275,7 @@ public class CheckoutFragment extends Fragment {
         }
 
         PaymentInitiateRequest request = new PaymentInitiateRequest(
-                DEVICE_ID,             // customer_id (Temi ID 또는 고객 ID)
+                null,             // customer_id (Temi ID 또는 고객 ID)
                 "매장고객",             // customer_name
                 null,                  // email
                 "00000000000",         // phone
