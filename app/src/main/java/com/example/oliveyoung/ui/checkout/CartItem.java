@@ -26,4 +26,10 @@ public class CartItem {
     public long getLineTotal() {
         return product.getPrice() * quantity;
     }
+
+    public void decrease() {
+        if (quantity > 1) {
+            quantity--;
+        }
+    }
 }

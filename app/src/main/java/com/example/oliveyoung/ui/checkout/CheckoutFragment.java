@@ -43,10 +43,11 @@ public class CheckoutFragment extends Fragment {
     private TextView textTotalPrice;
     private RecyclerView recyclerCart;
     private ImageView imageQr;
-    private LinearLayout buttonScan;           // ✅ Button → LinearLayout
-    private LinearLayout buttonPay;            // ✅ Button → LinearLayout
-    private LinearLayout buttonPaymentDone;    // ✅ Button → LinearLayout
+    private LinearLayout buttonScan;
+    private LinearLayout buttonPay;
+    private LinearLayout buttonPaymentDone;
     private Button buttonBack;
+    private Button btnClearCart;
 
     private CartAdapter cartAdapter;
     private List<CartItem> cartItems = new ArrayList<>();
@@ -74,6 +75,7 @@ public class CheckoutFragment extends Fragment {
         buttonPay = view.findViewById(R.id.buttonPay);
         buttonPaymentDone = view.findViewById(R.id.buttonPaymentDone);
         buttonBack = view.findViewById(R.id.buttonBack);
+        btnClearCart = view.findViewById(R.id.btnClearCart);
 
         // 뒤로가기 버튼: MainActivity.onBackPressed() → 홈으로
         buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
@@ -82,8 +84,37 @@ public class CheckoutFragment extends Fragment {
         cartAdapter = new CartAdapter();
         recyclerCart.setAdapter(cartAdapter);
 
+        // 어댑터 리스너 설정
+        cartAdapter.setOnItemChangeListener(new CartAdapter.OnItemChangeListener() {
+            @Override
+            public void onItemRemoved(int position) {
+                updateTotalPrice();
+            }
+
+            @Override
+            public void onQuantityChanged() {
+                updateTotalPrice();
+            }
+        });
+
         // orders/{ORDER_ID} 문서를 실시간으로 구독
         subscribeOrder();
+
+        // 바코드 스캔 버튼 클릭 리스너
+        buttonScan.setOnClickListener(v -> {
+            textStatus.setText("바코드를 스캔해주세요.");
+            speak("바코드를 스캔해주세요.");
+            // TODO: 실제 바코드 스캔 기능 구현
+        });
+
+        // 전체 비우기 버튼
+        btnClearCart.setOnClickListener(v -> {
+            cartItems.clear();
+            cartAdapter.clearAll();
+            updateTotalPrice();
+            textStatus.setText("장바구니를 비웠습니다.");
+            speak("장바구니를 비웠습니다.");
+        });
 
         buttonPay.setOnClickListener(v -> generatePaymentQr());
         buttonPaymentDone.setOnClickListener(v -> finishPayment());
@@ -186,7 +217,7 @@ public class CheckoutFragment extends Fragment {
             total += item.getLineTotal();
         }
         NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
-        textTotalPrice.setText("총 금액: ₩" + nf.format(total));
+        textTotalPrice.setText("₩" + nf.format(total));
     }
 
     /**

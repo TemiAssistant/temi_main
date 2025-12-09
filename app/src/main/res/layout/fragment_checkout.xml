@@ -60,47 +60,6 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="8dp" />
 
-    <!-- 총 금액 카드 -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardTotalPrice"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="12dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="6dp"
-        app:layout_constraintTop_toBottomOf="@id/textStatus"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="16dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:orientation="horizontal"
-            android:padding="24dp"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="총 금액"
-                android:textSize="22sp"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/textTotalPrice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="₩0"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:textColor="@color/oliveyoung_green" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
     <!-- 장바구니 리스트 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerCart"
@@ -109,11 +68,64 @@
         android:clipToPadding="false"
         android:paddingHorizontal="8dp"
         android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/cardTotalPrice"
+        app:layout_constraintTop_toBottomOf="@id/textStatus"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/imageQr"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintBottom_toTopOf="@id/totalPriceSection"
+        android:layout_marginTop="8dp" />
+
+    <!-- 총 금액 영역 (CardView 제거, 투명 배경) -->
+    <LinearLayout
+        android:id="@+id/totalPriceSection"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:orientation="vertical"
+        android:padding="20dp"
+        app:layout_constraintBottom_toTopOf="@id/buttonSection"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginBottom="8dp">
+
+        <!-- 헤더 (총 금액 + 전체 비우기) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="총 금액"
+                android:textSize="20sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnClearCart"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="전체 비우기"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:background="@android:color/transparent"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <!-- 금액 표시 -->
+        <TextView
+            android:id="@+id/textTotalPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₩0"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/oliveyoung_green"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
 
     <!-- QR 이미지 -->
     <ImageView
@@ -223,7 +235,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="결제 완료"
+                android:text="쇼핑 완료"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />

@@ -29,6 +29,12 @@ public class AiRecommendationAdapter extends RecyclerView.Adapter<AiRecommendati
         notifyDataSetChanged();
     }
 
+    // ✅ 전체 초기화 메서드 추가
+    public void clearAll() {
+        items.clear();
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

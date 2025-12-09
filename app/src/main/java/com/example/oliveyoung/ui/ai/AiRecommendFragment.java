@@ -40,6 +40,7 @@ public class AiRecommendFragment extends Fragment {
     private AiRecommendationAdapter aiAdapter;
 
     private ProductApi productApi;
+    private TextView textStatus;
 
     @Nullable
     @Override
@@ -62,12 +63,27 @@ public class AiRecommendFragment extends Fragment {
 
         btnAskAi.setOnClickListener(v -> callAi());
 
-        // 뒤로가기 버튼 클릭 리스너
+        // ✅ 뒤로가기 버튼 클릭 리스너 - 초기화 후 뒤로가기
         buttonBack.setOnClickListener(v -> {
+            // 추천 내역 초기화
+            aiAdapter.clearAll();
+
+            // 입력 필드 비우기
+            editQuestion.setText("");
+
+            // 분석 결과 숨기기
+            textAnalysis.setVisibility(View.GONE);
+            textAnalysis.setText("");
+
+            // 안내 텍스트 원래대로
+            textStatus.setText("💡 AI에게 원하는 상품을 물어보세요");
+
+            // 뒤로가기
             if (getActivity() != null) {
                 getActivity().onBackPressed();
             }
         });
+
 
         return view;
     }
