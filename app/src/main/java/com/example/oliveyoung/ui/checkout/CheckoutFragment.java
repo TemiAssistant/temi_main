@@ -46,11 +46,12 @@ public class CheckoutFragment extends Fragment {
     private LinearLayout buttonScan;
     private LinearLayout buttonPay;
     private LinearLayout buttonPaymentDone;
+    private LinearLayout btnClearCart;
     private Button buttonBack;
-    private Button btnClearCart;
 
     private CartAdapter cartAdapter;
     private List<CartItem> cartItems = new ArrayList<>();
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {

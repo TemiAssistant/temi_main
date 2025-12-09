@@ -36,7 +36,7 @@
             android:gravity="center"
             android:text="결제하기"
             android:textColor="@color/text_primary"
-            android:textSize="32sp"
+            android:textSize="50sp"
             android:textStyle="bold"
             android:letterSpacing="0.02" />
 
@@ -51,7 +51,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="바코드를 스캔해서 상품을 담아주세요"
-        android:textSize="18sp"
+        android:textSize="25sp"
         android:padding="16dp"
         android:gravity="center"
         android:textColor="@color/text_secondary"
@@ -80,50 +80,64 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:padding="20dp"
+        android:gravity="center_vertical"
         app:layout_constraintBottom_toTopOf="@id/buttonSection"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginBottom="8dp">
 
-        <!-- 헤더 (총 금액 + 전체 비우기) -->
+        <!-- 왼쪽: 총 금액 + 금액 값 -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="총 금액"
-                android:textSize="20sp"
+                android:textSize="40sp"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnClearCart"
+            <TextView
+                android:id="@+id/textTotalPrice"
                 android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="전체 비우기"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                android:background="@android:color/transparent"
-                android:padding="8dp" />
+                android:layout_height="wrap_content"
+                android:text="₩0"
+                android:textSize="40sp"
+                android:textStyle="bold"
+                android:textColor="@color/oliveyoung_dark_green"
+                android:layout_marginStart="16dp" />
+
         </LinearLayout>
 
-        <!-- 금액 표시 -->
-        <TextView
-            android:id="@+id/textTotalPrice"
+        <!-- 오른쪽: 전체 비우기 버튼 -->
+        <LinearLayout
+            android:id="@+id/btnClearCart"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="₩0"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/oliveyoung_green"
-            android:layout_marginTop="8dp" />
+            android:layout_height="60dp"
+            android:minWidth="250dp"
+            android:background="@drawable/button_square_darkgreen"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingHorizontal="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="전체 비우기"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -159,7 +173,6 @@
             android:layout_weight="1"
             android:layout_margin="6dp"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green"
             android:gravity="center"
             android:orientation="vertical"
             android:clickable="true"
@@ -189,7 +202,6 @@
             android:layout_weight="1"
             android:layout_margin="6dp"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green"
             android:gravity="center"
             android:orientation="vertical"
             android:clickable="true"
@@ -219,7 +231,6 @@
             android:layout_weight="1"
             android:layout_margin="6dp"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green"
             android:gravity="center"
             android:orientation="vertical"
             android:clickable="true"
@@ -248,7 +259,7 @@
         android:id="@+id/progressBar"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:indeterminateTint="@color/oliveyoung_green"
+        android:indeterminateTint="@color/oliveyoung_dark_green"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

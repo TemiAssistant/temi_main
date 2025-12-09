@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,7 +34,7 @@ import retrofit2.Response;
 public class AiRecommendFragment extends Fragment {
 
     private EditText editQuestion;
-    private Button btnAskAi;
+    private LinearLayout btnAskAi;
     private Button buttonBack;
     private TextView textAnalysis;
     private RecyclerView recyclerAi;
@@ -75,9 +76,10 @@ public class AiRecommendFragment extends Fragment {
             textAnalysis.setVisibility(View.GONE);
             textAnalysis.setText("");
 
-            // 안내 텍스트 원래대로
-            textStatus.setText("💡 AI에게 원하는 상품을 물어보세요");
-
+            // ✅ textStatus가 null이 아닌지 확인하고 실행
+            if (textStatus != null) {
+                textStatus.setText("💡 AI에게 원하는 상품을 물어보세요");
+            }
             // 뒤로가기
             if (getActivity() != null) {
                 getActivity().onBackPressed();

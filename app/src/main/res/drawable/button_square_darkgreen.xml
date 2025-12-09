@@ -3,13 +3,13 @@
     android:shape="rectangle">
 
     <!-- 둥근 모서리 -->
-    <corners android:radius="32dp" />
+    <corners android:radius="16dp" />
 
-    <!-- 기본 배경색: 올리브영 그린 -->
-    <solid android:color="#A6D64A" />
+    <!-- 짙은 초록색 배경 -->
+    <solid android:color="#2E7D32" />
 
     <!-- 버튼 높이 -->
-    <size android:height="140dp" />
+    <size android:height="60dp" />
 
     <!-- 테두리 (살짝 흐린 흰색으로 포인트) -->
     <stroke

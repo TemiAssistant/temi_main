@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -34,7 +35,7 @@ import retrofit2.Response;
 public class SearchFragment extends Fragment {
 
     private EditText editKeyword;
-    private Button btnSearch;
+    private LinearLayout btnSearch;
     private RecyclerView recyclerProducts;
     private Button buttonBack;   // 🔹 추가: 뒤로가기 버튼
 
