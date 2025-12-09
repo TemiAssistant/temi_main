@@ -69,7 +69,7 @@ public class AiRecommendationAdapter extends RecyclerView.Adapter<AiRecommendati
             String price = nf.format(item.getPrice()) + "원";
 
             // 브랜드 + 가격
-            textBrandPrice.setText(item.getBrand() + " | " + price);
+            textBrandPrice.setVisibility(View.GONE);
 
             // 추천 이유 표시
             String reason = item.getReason();
