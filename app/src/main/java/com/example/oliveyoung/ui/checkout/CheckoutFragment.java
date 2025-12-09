@@ -45,6 +45,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import android.os.Handler;
+import android.os.Looper;
+
+
 public class CheckoutFragment extends Fragment {
 
     private static final String TAG = "CheckoutFragment";
@@ -76,6 +80,18 @@ public class CheckoutFragment extends Fragment {
     private String currentCheckoutUrl;
 
     private final NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
+
+    // ==============================
+    // 자동 갱신 Polling 추가
+    // ==============================
+    private Handler handler = new Handler();
+    private Runnable cartPollingTask = new Runnable() {
+        @Override
+        public void run() {
+            fetchCartFromServer();
+            handler.postDelayed(this, 3000); // 3초마다 반복
+        }
+    };
 
     @Nullable
     @Override
@@ -126,6 +142,18 @@ public class CheckoutFragment extends Fragment {
         buttonPaymentDone.setOnClickListener(v -> checkPaymentStatus());
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        handler.post(cartPollingTask);  // 화면 보이면 polling 시작
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        handler.removeCallbacks(cartPollingTask);  // 화면 벗어나면 polling 종료
     }
 
     // ==============================
