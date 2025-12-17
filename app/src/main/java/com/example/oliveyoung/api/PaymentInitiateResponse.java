@@ -1,18 +1,34 @@
-// PaymentInitiateResponse.java
 package com.example.oliveyoung.api;
 
-import java.util.Date;
+import com.google.gson.annotations.SerializedName;
 
 public class PaymentInitiateResponse {
+    @SerializedName("success")
     private boolean success;
+
+    @SerializedName("payment_key")
     private String payment_key;
+
+    @SerializedName("order_id")
     private String order_id;
+
+    @SerializedName("amount")
     private int amount;
+
+    @SerializedName("order_name")
     private String order_name;
+
+    @SerializedName("customer_name")
     private String customer_name;
+
+    @SerializedName("qr_data")
     private String qr_data;
+
+    @SerializedName("checkout_url")
     private String checkout_url;
-    private String created_at; // ISO 문자열로 올 가능성 큼
+
+    @SerializedName("created_at")
+    private String created_at;
 
     public boolean isSuccess() { return success; }
     public String getPayment_key() { return payment_key; }

@@ -1,4 +1,3 @@
-// PaymentApi.java
 package com.example.oliveyoung.api;
 
 import retrofit2.Call;
@@ -12,6 +11,6 @@ public interface PaymentApi {
     @POST("/api/payments/initiate")
     Call<PaymentInitiateResponse> initiatePayment(@Body PaymentInitiateRequest request);
 
-    @GET("/api/payments/orders/{orderId}")
-    Call<OrderResponse> getOrder(@Path("orderId") String orderId);
+    @GET("/api/payments/orders/{order_id}")
+    Call<OrderResponse> getOrder(@Path("order_id") String orderId);
 }

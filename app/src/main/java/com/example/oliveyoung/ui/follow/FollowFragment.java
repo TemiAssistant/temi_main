@@ -27,7 +27,7 @@ public class FollowFragment extends Fragment {
 
     // Temi에서 "베이스(충전소)"로 저장해 둔 위치 이름
     // Temi Settings → Locations 에서 실제 이름을 이 문자열과 맞춰줘야 함
-    private static final String BASE_LOCATION_NAME = "충전소"; // 예: "충전소", "home base" 등 네가 저장한 이름으로 바꿔도 됨
+    private static final String BASE_LOCATION_NAME = "홈베이스"; // 예: "충전소", "home base" 등 네가 저장한 이름으로 바꿔도 됨
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {

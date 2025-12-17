@@ -16,7 +16,6 @@ public class RemoteCartItem {
     @SerializedName("quantity")
     private int quantity;
 
-    // --- getter들 ---
     public String getProductId() { return productId; }
     public String getName() { return name; }
     public int getPrice() { return price; }

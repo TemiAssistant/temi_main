@@ -130,7 +130,7 @@
         app:layout_constraintTop_toBottomOf="@id/cardTotalPrice"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/imageQr"
+        app:layout_constraintBottom_toTopOf="@id/buttonSection"
         android:layout_marginTop="12dp" />
 
     <!-- 하단 버튼 섹션 -->
@@ -237,19 +237,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- QR 코드 (결제 시작 후 노출) -->
-    <ImageView
-        android:id="@+id/imageQr"
-        android:layout_width="220dp"
-        android:layout_height="220dp"
-        android:elevation="20dp"
-        android:visibility="gone"
-        android:contentDescription="결제 QR 코드"
-        app:layout_constraintTop_toBottomOf="@id/recyclerCart"
-        app:layout_constraintBottom_toTopOf="@id/buttonSection"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <!-- 로딩 인디케이터 -->
     <ProgressBar
         android:id="@+id/progressBar"
@@ -261,5 +248,89 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ========================= -->
+    <!-- QR 오버레이 (맨 앞으로) -->
+    <!-- ========================= -->
+    <FrameLayout
+        android:id="@+id/qrOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="100dp"
+        android:translationZ="100dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 딤 배경 -->
+        <View
+            android:id="@+id/qrDim"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#AA000000" />
+
+        <!-- X 버튼 -->
+        <ImageView
+            android:id="@+id/buttonCloseQr"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="24dp"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:tint="@android:color/white" />
+
+        <!-- 중앙 컨텐츠 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/textScanQr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="QR을 스캔해주세요"
+                android:textColor="@android:color/white"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="10dp">
+
+                <ImageView
+                    android:id="@+id/imageQrLarge"
+                    android:layout_width="280dp"
+                    android:layout_height="280dp"
+                    android:background="@android:color/white"
+                    android:padding="12dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="결제 QR 코드" />
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="스캔 후 결제를 진행해주세요"
+                android:textColor="#DDFFFFFF"
+                android:textSize="16sp"
+                android:layout_marginTop="12dp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

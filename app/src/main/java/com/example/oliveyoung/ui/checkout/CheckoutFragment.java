@@ -3,6 +3,8 @@ package com.example.oliveyoung.ui.checkout;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,7 +15,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.robotemi.sdk.Robot;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -45,14 +49,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import android.os.Handler;
-import android.os.Looper;
-
-
 public class CheckoutFragment extends Fragment {
 
     private static final String TAG = "CheckoutFragment";
 
+    // ✅ 선택지 A: Temi 1대지만 owner_id는 고정값으로 유지
+    private static final String OWNER_ID = "temi";
 
     // UI
     private TextView textStatus;
@@ -62,7 +64,12 @@ public class CheckoutFragment extends Fragment {
     private LinearLayout buttonScan;
     private LinearLayout buttonPay;
     private LinearLayout buttonPaymentDone;
-    private ImageView imageQr;
+
+    // ✅ QR 오버레이
+    private View qrOverlay;
+    private ImageView imageQrLarge;
+    private ImageView buttonCloseQr;
+
     private ProgressBar progressBar;
 
     // 장바구니 화면용
@@ -77,17 +84,34 @@ public class CheckoutFragment extends Fragment {
     private String currentOrderId;
     private String currentCheckoutUrl;
 
+    private Robot temiRobot;
+
     private final NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
 
-    // ==============================
-    // 자동 갱신 Polling 추가
-    // ==============================
-    private Handler handler = new Handler();
-    private Runnable cartPollingTask = new Runnable() {
+    private boolean isPolling = false;
+
+    private void startCartPolling() {
+        if (isPolling) return;
+        isPolling = true;
+        handler.post(cartPollingTask); // 즉시 1번 실행 후 3초마다 반복
+    }
+
+    private void stopCartPolling() {
+        isPolling = false;
+        handler.removeCallbacks(cartPollingTask);
+    }
+
+
+    // ✅ Polling
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable cartPollingTask = new Runnable() {
         @Override
         public void run() {
-            fetchCartFromServer();
-            handler.postDelayed(this, 3000); // 3초마다 반복
+            // QR 오버레이가 떠있을 땐 화면이 결제 모드니까 폴링을 멈추는 게 안전함
+            if (!isQrOverlayVisible()) {
+                fetchCartFromServer(false);
+            }
+            handler.postDelayed(this, 3000); // 3초
         }
     };
 
@@ -99,7 +123,7 @@ public class CheckoutFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_checkout, container, false);
 
-        // -------- 뷰 바인딩 --------
+        // 뷰 바인딩
         textStatus = view.findViewById(R.id.textStatus);
         textTotalPrice = view.findViewById(R.id.textTotalPrice);
         textItemCount = view.findViewById(R.id.textItemCount);
@@ -107,7 +131,14 @@ public class CheckoutFragment extends Fragment {
         buttonScan = view.findViewById(R.id.buttonScan);
         buttonPay = view.findViewById(R.id.buttonPay);
         buttonPaymentDone = view.findViewById(R.id.buttonPaymentDone);
-        imageQr = view.findViewById(R.id.imageQr);
+
+        // ✅ QR 오버레이 바인딩
+        qrOverlay = view.findViewById(R.id.qrOverlay);
+        imageQrLarge = view.findViewById(R.id.imageQrLarge);
+        buttonCloseQr = view.findViewById(R.id.buttonCloseQr);
+
+        temiRobot = Robot.getInstance();
+
         progressBar = view.findViewById(R.id.progressBar);
 
         View buttonBack = view.findViewById(R.id.buttonBack);
@@ -115,29 +146,65 @@ public class CheckoutFragment extends Fragment {
             buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
         }
 
-        // -------- Retrofit APIs --------
+        // Retrofit
         cartApi = RetrofitClient.getClient().create(CartApi.class);
         paymentApi = RetrofitClient.getClient().create(PaymentApi.class);
 
-        // -------- RecyclerView --------
+        // RecyclerView
         cartAdapter = new CartAdapter();
         recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerCart.setAdapter(cartAdapter);
 
-        // 처음 진입할 때 서버에서 장바구니 불러오기
-        fetchCartFromServer();
+        // ✅ QR 오버레이: 바깥 터치로 닫히지 않도록 (아무 동작 X)
+        if (qrOverlay != null) {
+            qrOverlay.setOnClickListener(v -> {
+                // do nothing
+            });
+        }
+
+        // ✅ X 버튼으로만 닫기
+        if (buttonCloseQr != null) {
+            buttonCloseQr.setOnClickListener(v -> hideQrOverlay());
+        }
+
+        // ✅ “X 버튼으로만 닫히게” → 뒤로가기 버튼(하드웨어/제스처)로 오버레이 닫히지 않게 막기
+        requireActivity().getOnBackPressedDispatcher().addCallback(
+                getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        if (isQrOverlayVisible()) {
+                            // 오버레이 떠있으면 뒤로가기 무시 (X로만 닫힘)
+                            return;
+                        }
+                        // 오버레이 없으면 정상 뒤로가기
+                        setEnabled(false);
+                        requireActivity().onBackPressed();
+                    }
+                }
+        );
 
         // 버튼 리스너
         buttonScan.setOnClickListener(v -> {
-            // 바코드 스캔은 외부 아두이노가 담당
-            Toast.makeText(getContext(),
-                    "바코드 스캔은 외부 스캐너에서 처리됩니다.",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    getContext(),
+                    "바코드 스캔 중입니다.\n장바구니를 자동으로 갱신합니다.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            startCartPolling();
         });
 
-        buttonPay.setOnClickListener(v -> startPayment());
 
-        buttonPaymentDone.setOnClickListener(v -> checkPaymentStatus());
+        buttonPay.setOnClickListener(v -> startPayment());
+        buttonPaymentDone.setOnClickListener(v -> {
+            stopCartPolling();
+            if (qrOverlay != null) qrOverlay.setVisibility(View.GONE);
+            goToBase();
+        });
+
+        // 최초 1회 (초기 진입은 로딩 보여주기)
+        fetchCartFromServer(true);
 
         return view;
     }
@@ -145,91 +212,106 @@ public class CheckoutFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        handler.post(cartPollingTask);  // 화면 보이면 polling 시작
+        // handler.post(cartPollingTask);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        handler.removeCallbacks(cartPollingTask);  // 화면 벗어나면 polling 종료
+        stopCartPolling();
+        // handler.removeCallbacks(cartPollingTask);
+    }
+
+    private void goToBase() {
+        try {
+            // 위치 저장이 "base" 라는 이름으로 되어 있어야 함
+            // (temi에서 Save location으로 base 등록 필요)
+            temiRobot.goTo("홈베이스");
+            Toast.makeText(getContext(), "베이스로 이동합니다.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "goToBase 실패: " + e.getMessage(), e);
+            Toast.makeText(getContext(), "베이스 이동 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isQrOverlayVisible() {
+        return qrOverlay != null && qrOverlay.getVisibility() == View.VISIBLE;
     }
 
     // ==============================
-    // 1) 서버에서 장바구니 불러오기
+    // 1) Cart 조회: GET /api/cart/{owner_id}
     // ==============================
-    private void fetchCartFromServer() {
-        showLoading(true);
-        textStatus.setText("장바구니를 불러오는 중입니다...");
+    private void fetchCartFromServer(boolean showSpinner) {
+        if (showSpinner) showLoading(true);
 
-        cartApi.getCurrentCart().enqueue(new Callback<CartResponse>() {
+        cartApi.getCart(OWNER_ID).enqueue(new Callback<CartResponse>() {
             @Override
             public void onResponse(@NonNull Call<CartResponse> call,
                                    @NonNull Response<CartResponse> response) {
-                showLoading(false);
+                if (showSpinner) showLoading(false);
 
                 if (!response.isSuccessful() || response.body() == null) {
                     Log.e(TAG, "장바구니 조회 실패: HTTP " + response.code());
-                    Toast.makeText(getContext(),
-                            "장바구니 조회 실패 (" + response.code() + ")",
-                            Toast.LENGTH_SHORT).show();
-                    textStatus.setText("장바구니를 불러오지 못했습니다.");
+                    if (!isQrOverlayVisible()) {
+                        textStatus.setText("장바구니를 불러오지 못했습니다.");
+                    }
                     return;
                 }
 
                 CartResponse body = response.body();
-                if (!body.isSuccess() || body.getItems() == null) {
-                    Toast.makeText(getContext(),
-                            "장바구니가 비어있거나 오류가 발생했습니다.",
-                            Toast.LENGTH_SHORT).show();
-                    textStatus.setText("장바구니가 비어 있습니다.");
+                if (!body.isSuccess() || body.getCart() == null || body.getCart().getItems() == null) {
+                    if (!isQrOverlayVisible()) {
+                        textStatus.setText("장바구니가 비어 있습니다.");
+                    }
                     cartItems.clear();
                     cartAdapter.setItems(cartItems);
                     updateTotalPriceAndCount();
                     return;
                 }
 
-                // RemoteCartItem -> 화면용 CartItem 으로 변환
-                cartItems.clear();
-                for (RemoteCartItem r : body.getItems()) {
+                List<RemoteCartItem> remoteItems = body.getCart().getItems();
 
-                    // UI에서 사용할 Product 객체 생성
+                cartItems.clear();
+                for (RemoteCartItem r : remoteItems) {
+
                     Product p = new Product(
                             r.getProductId(),
                             r.getName(),
                             r.getPrice(),
-                            null,   // brand  (필요하면 API에 추가)
-                            null,   // category
-                            null    // imageUrl
+                            null, // brand
+                            null, // category
+                            null  // imageUrl
                     );
 
                     CartItem ci = new CartItem(p);
-                    // CartItem 은 기본 quantity=1 이라, remote quantity 반영 필요
-                    for (int i = 1; i < r.getQuantity(); i++) {
-                        ci.increase();
-                    }
+
+                    // 수량 반영 (CartItem 기본 1)
+                    int q = r.getQuantity();
+                    for (int i = 1; i < q; i++) ci.increase();
+
                     cartItems.add(ci);
                 }
 
                 cartAdapter.setItems(cartItems);
                 updateTotalPriceAndCount();
 
-                textStatus.setText("바코드를 스캔해서 상품을 담아주세요");
+                if (!isQrOverlayVisible()) {
+                    textStatus.setText("바코드를 스캔해서 상품을 담아주세요");
+                }
             }
 
             @Override
             public void onFailure(@NonNull Call<CartResponse> call,
                                   @NonNull Throwable t) {
-                showLoading(false);
+                if (showSpinner) showLoading(false);
                 Log.e(TAG, "장바구니 조회 통신 오류: " + t.getMessage(), t);
-                Toast.makeText(getContext(),
-                        "장바구니 조회 중 오류가 발생했습니다.",
-                        Toast.LENGTH_SHORT).show();
-                textStatus.setText("장바구니를 불러오는 중 오류가 발생했습니다.");
+                if (!isQrOverlayVisible()) {
+                    textStatus.setText("장바구니 통신 오류");
+                }
             }
         });
     }
 
-    /** 합계 & Item n 텍스트 갱신 */
     private void updateTotalPriceAndCount() {
         long total = 0;
         int count = 0;
@@ -237,21 +319,16 @@ public class CheckoutFragment extends Fragment {
             total += item.getLineTotal();
             count += item.getQuantity();
         }
-
         textTotalPrice.setText("₩" + nf.format(total));
-        if (textItemCount != null) {
-            textItemCount.setText("Item " + count);
-        }
+        if (textItemCount != null) textItemCount.setText("Item " + count);
     }
 
     // ==============================
-    // 2) 결제 시작 (/api/payments/initiate)
+    // 2) 결제 시작: POST /api/payments/initiate
     // ==============================
     private void startPayment() {
-//        if (cartItems.isEmpty()) {
-//            Toast.makeText(getContext(), "장바구니가 비어 있습니다.", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
+        // ✅ 장바구니 비어있어도 결제 흐름(테스트/데모) 되게 하려면 막지 말기
+        // (백엔드가 items 빈 배열/amount 0을 허용해야 함)
 
         List<PaymentItem> paymentItems = new ArrayList<>();
         int totalAmount = 0;
@@ -275,10 +352,8 @@ public class CheckoutFragment extends Fragment {
         }
 
         PaymentInitiateRequest request = new PaymentInitiateRequest(
-                null,             // customer_id (Temi ID 또는 고객 ID)
-                "매장고객",             // customer_name
-                null,                  // email
-                "00000000000",         // phone
+                "매장고객",
+                "00000000000",
                 paymentItems,
                 totalAmount,
                 0,
@@ -297,42 +372,40 @@ public class CheckoutFragment extends Fragment {
                 if (!response.isSuccessful() || response.body() == null) {
                     String msg = "결제 시작 실패 (HTTP " + response.code() + ")";
                     Log.e(TAG, msg);
+                    textStatus.setText("결제 시작 실패");
                     Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-                    textStatus.setText("결제 시작에 실패했습니다.");
                     return;
                 }
 
                 PaymentInitiateResponse body = response.body();
                 if (!body.isSuccess()) {
-                    Log.e(TAG, "결제 시작 실패: success=false");
+                    textStatus.setText("결제 시작 실패");
                     Toast.makeText(getContext(), "결제 시작 실패", Toast.LENGTH_SHORT).show();
-                    textStatus.setText("결제 시작에 실패했습니다.");
                     return;
                 }
 
                 currentOrderId = body.getOrder_id();
                 currentCheckoutUrl = body.getCheckout_url();
 
-                textStatus.setText("고객 앱에서 결제를 진행해주세요.\n결제가 끝나면 '결제 완료' 버튼을 눌러주세요.");
-                Toast.makeText(getContext(), "결제 QR/URL이 생성되었습니다.", Toast.LENGTH_SHORT).show();
-
-                // ---- QR 코드 생성 & 표시 ----
                 String qrData = body.getQr_data();
-                if (qrData == null || qrData.isEmpty()) {
-                    qrData = currentCheckoutUrl;  // 혹시 qr_data 없으면 URL로 생성
+                if (TextUtils.isEmpty(qrData)) qrData = currentCheckoutUrl;
+
+                if (TextUtils.isEmpty(qrData)) {
+                    textStatus.setText("QR 데이터가 없습니다. 서버 응답을 확인해주세요.");
+                    return;
                 }
 
-                if (!TextUtils.isEmpty(qrData)) {
-                    Bitmap qrBitmap = generateQrCode(qrData, 600);
-                    if (qrBitmap != null) {
-                        imageQr.setImageBitmap(qrBitmap);
-                        imageQr.setVisibility(View.VISIBLE);
-                    } else {
-                        textStatus.setText("QR 코드 생성 중 오류가 발생했습니다.");
-                    }
-                } else {
-                    textStatus.setText("QR 데이터가 없습니다.");
+                Bitmap qrBitmap = generateQrCode(qrData, 700);
+                if (qrBitmap == null) {
+                    textStatus.setText("QR 생성 실패");
+                    return;
                 }
+
+                // ✅ 여기서부터 “오버레이 방식”으로 표시
+                showQrOverlay(qrBitmap);
+
+                // 상태 텍스트는 화면 뒤에 있지만 유지해도 됨
+                textStatus.setText("고객 앱에서 QR을 스캔해 결제를 진행해주세요.\n결제가 끝나면 '결제 완료' 버튼을 눌러주세요.");
             }
 
             @Override
@@ -340,15 +413,40 @@ public class CheckoutFragment extends Fragment {
                                   @NonNull Throwable t) {
                 showLoading(false);
                 Log.e(TAG, "결제 시작 통신 오류: " + t.getMessage(), t);
-                Toast.makeText(getContext(), "결제 요청 실패: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-                textStatus.setText("결제 시작 중 오류가 발생했습니다.");
+                textStatus.setText("결제 요청 실패");
+                Toast.makeText(getContext(), "결제 요청 실패: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    // ✅ QR 오버레이 표시 (X로만 닫힘)
+    private void showQrOverlay(Bitmap qrBitmap) {
+        if (qrOverlay == null || imageQrLarge == null) return;
+
+        imageQrLarge.setImageBitmap(qrBitmap);
+        stopCartPolling();
+        qrOverlay.setVisibility(View.VISIBLE);
+
+        // QR 떠있는 동안 조작 방지
+        if (buttonScan != null) buttonScan.setEnabled(false);
+        if (buttonPay != null) buttonPay.setEnabled(false);
+        if (buttonPaymentDone != null) buttonPaymentDone.setEnabled(false);
+    }
+
+    private void hideQrOverlay() {
+        if (qrOverlay == null) return;
+
+        qrOverlay.setVisibility(View.GONE);
+        startCartPolling();
+
+        // 다시 버튼 활성화
+        if (buttonScan != null) buttonScan.setEnabled(true);
+        if (buttonPay != null) buttonPay.setEnabled(true);
+        if (buttonPaymentDone != null) buttonPaymentDone.setEnabled(true);
+    }
+
     // ==============================
-    // 3) 결제 완료 확인 (/api/payments/orders/{orderId})
+    // 3) 주문 조회: GET /api/payments/orders/{order_id}
     // ==============================
     private void checkPaymentStatus() {
         if (TextUtils.isEmpty(currentOrderId)) {
@@ -366,60 +464,61 @@ public class CheckoutFragment extends Fragment {
                 showLoading(false);
 
                 if (!response.isSuccessful() || response.body() == null) {
-                    Log.e(TAG, "주문 조회 실패: HTTP " + response.code());
-                    Toast.makeText(getContext(),
-                            "주문 조회 실패 (" + response.code() + ")",
-                            Toast.LENGTH_SHORT).show();
+                    textStatus.setText("주문 조회 실패");
                     return;
                 }
 
                 OrderResponse body = response.body();
                 if (!body.isSuccess() || body.getOrder() == null) {
-                    Toast.makeText(getContext(), "주문 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+                    textStatus.setText("주문 정보 없음");
                     return;
                 }
 
                 String paymentStatus = body.getOrder().getPayment_status();
-
                 if ("DONE".equals(paymentStatus)) {
                     textStatus.setText("결제가 완료되었습니다. 감사합니다!");
                     Toast.makeText(getContext(), "결제 완료!", Toast.LENGTH_SHORT).show();
-                    // TODO: 장바구니 초기화, 홈 이동, /api/cart/clear 호출 등
+
+                    // ✅ QR 오버레이 닫기(열려있다면)
+                    if (qrOverlay != null) qrOverlay.setVisibility(View.GONE);
+
+                    // ✅ 폴링 중지
+                    stopCartPolling();
+
+                    // ✅ (옵션) 장바구니 비우기
+                    clearCartAfterPayment();
+
+                    // ✅ 베이스로 이동
+                    goToBase();
+
                 } else {
                     textStatus.setText("현재 결제 상태: " + paymentStatus);
-                    Toast.makeText(getContext(),
-                            "아직 결제가 완료되지 않았습니다.\n상태: " + paymentStatus,
-                            Toast.LENGTH_SHORT).show();
                 }
+
             }
 
             @Override
             public void onFailure(@NonNull Call<OrderResponse> call,
                                   @NonNull Throwable t) {
                 showLoading(false);
-                Log.e(TAG, "주문 조회 통신 오류: " + t.getMessage(), t);
-                Toast.makeText(getContext(),
-                        "주문 조회 중 오류가 발생했습니다.",
-                        Toast.LENGTH_SHORT).show();
+                textStatus.setText("주문 조회 통신 오류");
             }
         });
     }
-
-    // ==============================
-    // 공통 유틸
-    // ==============================
 
     private void showLoading(boolean show) {
         if (progressBar != null) {
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         }
+        // QR 오버레이가 떠있을 땐 버튼은 이미 막혀있으므로 건드리지 않음
+        if (isQrOverlayVisible()) return;
+
         boolean enable = !show;
-        buttonScan.setEnabled(enable);
-        buttonPay.setEnabled(enable);
-        buttonPaymentDone.setEnabled(enable);
+        if (buttonScan != null) buttonScan.setEnabled(enable);
+        if (buttonPay != null) buttonPay.setEnabled(enable);
+        if (buttonPaymentDone != null) buttonPaymentDone.setEnabled(enable);
     }
 
-    /** QR 코드 비트맵 생성 */
     private Bitmap generateQrCode(String text, int size) {
         try {
             QRCodeWriter writer = new QRCodeWriter();
@@ -433,8 +532,23 @@ public class CheckoutFragment extends Fragment {
             }
             return bitmap;
         } catch (WriterException e) {
-            Log.e(TAG, "QR 코드 생성 실패: " + e.getMessage(), e);
+            Log.e(TAG, "QR 생성 실패: " + e.getMessage(), e);
             return null;
         }
+    }
+
+    // (옵션) 결제 완료 후 장바구니 비우기
+    private void clearCartAfterPayment() {
+        cartApi.clearCart(OWNER_ID).enqueue(new Callback<CartResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<CartResponse> call, @NonNull Response<CartResponse> response) {
+                fetchCartFromServer(true);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<CartResponse> call, @NonNull Throwable t) {
+                Log.e(TAG, "장바구니 비우기 실패: " + t.getMessage(), t);
+            }
+        });
     }
 }
