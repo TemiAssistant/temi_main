@@ -6,21 +6,53 @@
     android:background="@color/background_light"
     android:padding="20dp">
 
+    <!-- ========================= -->
     <!-- OliveYoung 로고 -->
+    <!-- ========================= -->
     <ImageView
         android:id="@+id/imageOliveYoungLogo"
         android:layout_width="850dp"
         android:layout_height="wrap_content"
-        android:layout_above="@id/buttonContainer"
         android:layout_alignParentTop="true"
+        android:layout_above="@id/welcomeSection"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="200dp"
+        android:layout_marginTop="120dp"
         android:layout_marginBottom="20dp"
-        android:src="@drawable/oliveyoung_logo"
         android:adjustViewBounds="true"
-        android:gravity="center" />
+        android:src="@drawable/oliveyoung_logo" />
 
+    <!-- ========================= -->
+    <!-- 환영 메시지 -->
+    <!-- ========================= -->
+    <LinearLayout
+        android:id="@+id/welcomeSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/buttonContainer"
+        android:layout_marginBottom="24dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👋 안녕하세요! 무엇을 도와드릴까요?"
+            android:textColor="@color/text_primary"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="아래 버튼을 눌러 서비스를 이용해주세요"
+            android:textColor="@color/text_secondary"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!-- ========================= -->
     <!-- 하단 버튼 컨테이너 -->
+    <!-- ========================= -->
     <LinearLayout
         android:id="@+id/buttonContainer"
         android:layout_width="match_parent"
@@ -29,27 +61,27 @@
         android:layout_marginBottom="40dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="12dp">
 
         <!-- 따라오기 (테미) -->
         <LinearLayout
             android:id="@+id/buttonFollow"
             android:layout_width="0dp"
-            android:layout_height="160dp"
-            android:layout_weight="1"
+            android:layout_height="180dp"
             android:layout_margin="8dp"
+            android:layout_weight="1"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green"
-            android:gravity="center"
-            android:orientation="vertical"
             android:clickable="true"
-            android:focusable="true">
+            android:elevation="8dp"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
 
             <ImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/ic_temi_robot"
-                android:contentDescription="테미 로봇" />
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:contentDescription="테미 로봇"
+                android:src="@drawable/ic_temi_robot" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -57,29 +89,37 @@
                 android:layout_marginTop="12dp"
                 android:text="테미"
                 android:textColor="@color/white"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="안내 · 따라가기"
+                android:textColor="#CCFFFFFF"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <!-- 검색 -->
         <LinearLayout
             android:id="@+id/buttonSearch"
             android:layout_width="0dp"
-            android:layout_height="160dp"
-            android:layout_weight="1"
+            android:layout_height="180dp"
             android:layout_margin="8dp"
+            android:layout_weight="1"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green"
-            android:gravity="center"
-            android:orientation="vertical"
             android:clickable="true"
-            android:focusable="true">
+            android:elevation="8dp"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
 
             <ImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/ic_search"
-                android:contentDescription="검색 아이콘" />
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:contentDescription="검색 아이콘"
+                android:src="@drawable/ic_search" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -87,29 +127,49 @@
                 android:layout_marginTop="12dp"
                 android:text="검색"
                 android:textColor="@color/white"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="상품 찾기"
+                android:textColor="#CCFFFFFF"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <!-- AI 상품 추천 -->
         <LinearLayout
             android:id="@+id/buttonAiRecommend"
             android:layout_width="0dp"
-            android:layout_height="160dp"
-            android:layout_weight="1"
+            android:layout_height="180dp"
             android:layout_margin="8dp"
+            android:layout_weight="1"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green"
-            android:gravity="center"
-            android:orientation="vertical"
             android:clickable="true"
-            android:focusable="true">
+            android:elevation="8dp"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
 
-            <ImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/ic_ai_recommend"
-                android:contentDescription="AI 추천 아이콘" />
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:contentDescription="AI 추천 아이콘"
+                    android:src="@drawable/ic_ai_recommend" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:text="✨"
+                    android:textSize="16sp" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -117,29 +177,37 @@
                 android:layout_marginTop="12dp"
                 android:text="AI 추천"
                 android:textColor="@color/white"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="맞춤 상품 추천"
+                android:textColor="#CCFFFFFF"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <!-- 결제하기 -->
         <LinearLayout
             android:id="@+id/buttonCheckout"
             android:layout_width="0dp"
-            android:layout_height="160dp"
-            android:layout_weight="1"
+            android:layout_height="180dp"
             android:layout_margin="8dp"
+            android:layout_weight="1"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green"
-            android:gravity="center"
-            android:orientation="vertical"
             android:clickable="true"
-            android:focusable="true">
+            android:elevation="8dp"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
 
             <ImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/ic_payment"
-                android:contentDescription="결제 아이콘" />
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:contentDescription="결제 아이콘"
+                android:src="@drawable/ic_payment" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -147,18 +215,27 @@
                 android:layout_marginTop="12dp"
                 android:text="결제하기"
                 android:textColor="@color/white"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="바코드 · QR 결제"
+                android:textColor="#CCFFFFFF"
+                android:textSize="13sp" />
         </LinearLayout>
 
     </LinearLayout>
 
+    <!-- ========================= -->
     <!-- 내부 화면용 ViewPager -->
+    <!-- ========================= -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/buttonContainer"
         android:visibility="gone" />
 
 </RelativeLayout>

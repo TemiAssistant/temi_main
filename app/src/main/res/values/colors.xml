@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="oliveyoung_green">#7FD858</color>
+    <color name="oliveyoung_green">#9CDD05</color>
     <color name="oliveyoung_pink">#FF6B9D</color>
     <color name="oliveyoung_dark_green">#5CB830</color>
+
+    <color name="divider_color">#DDDDDD</color>
 
     <color name="background_light">#F5F5F5</color>
     <color name="background_dark">#121212</color>

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light"
-    android:padding="20dp">
+    android:padding="24dp">
 
     <!-- 상단 바 -->
     <LinearLayout
@@ -13,19 +13,18 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:paddingVertical="16dp"
+        android:layout_marginTop="30dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="50dp">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <Button
             android:id="@+id/buttonBack"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:background="@drawable/back_button"
-            android:text=""
-            android:elevation="10dp" />
+            android:elevation="4dp" />
 
         <TextView
             android:layout_width="0dp"
@@ -34,47 +33,72 @@
             android:gravity="center"
             android:text="따라가기"
             android:textColor="@color/text_primary"
-            android:textSize="28sp"
+            android:textSize="42sp"
             android:textStyle="bold" />
 
         <View
-            android:layout_width="56dp"
-            android:layout_height="56dp" />
+            android:layout_width="80dp"
+            android:layout_height="80dp" />
     </LinearLayout>
 
-    <!-- 테미 상태 텍스트 -->
-    <TextView
-        android:id="@+id/textStatus"
+    <!-- 테미 상태 카드 -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardStatus"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="테미 상태가 여기 표시됩니다."
-        android:textColor="@color/text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:padding="24dp"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="24dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/white"
         app:layout_constraintTop_toBottomOf="@id/topBar"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- 하단 버튼 3개 컨테이너 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="32dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📍"
+                android:textSize="48sp" />
+
+            <TextView
+                android:id="@+id/textStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="테미 상태가 여기 표시됩니다."
+                android:textColor="@color/text_primary"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="16dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 하단 버튼 컨테이너 -->
     <LinearLayout
         android:id="@+id/buttonContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="12dp"
         android:layout_marginBottom="40dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- 따라오기 버튼: ic_follow 아이콘 적용 -->
+        <!-- 따라오기 버튼 -->
         <Button
             android:id="@+id/buttonFollow"
             android:layout_width="0dp"
-            android:layout_height="160dp"
+            android:layout_height="180dp"
             android:layout_weight="1"
             android:layout_margin="8dp"
             android:gravity="center"
@@ -85,41 +109,41 @@
             android:textStyle="bold"
             android:textColor="@color/white"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green" />
+            android:elevation="8dp" />
 
         <!-- 멈추기 버튼 -->
         <Button
             android:id="@+id/buttonStop"
             android:layout_width="0dp"
-            android:layout_height="160dp"
+            android:layout_height="180dp"
             android:layout_weight="1"
             android:layout_margin="8dp"
             android:gravity="center"
             android:drawableTop="@drawable/ic_stop"
-            android:drawablePadding="8dp"
+            android:drawablePadding="12dp"
             android:text="멈추기"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@color/white"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green" />
+            android:elevation="8dp" />
 
         <!-- 베이스로 돌아가기 버튼 -->
         <Button
             android:id="@+id/buttonGoHome"
             android:layout_width="0dp"
-            android:layout_height="160dp"
+            android:layout_height="180dp"
             android:layout_weight="1"
             android:layout_margin="8dp"
             android:gravity="center"
             android:drawableTop="@drawable/ic_to_base"
-            android:drawablePadding="8dp"
-            android:text="베이스로 돌아가기"
-            android:textSize="20sp"
+            android:drawablePadding="12dp"
+            android:text="베이스로"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@color/white"
             android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green" />
+            android:elevation="8dp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
