@@ -3,6 +3,8 @@ package com.example.oliveyoung.ui.checkout;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.robotemi.sdk.Robot;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -49,7 +52,7 @@ public class CheckoutFragment extends Fragment {
 
     private static final String TAG = "CheckoutFragment";
 
-    // Temi / Arduino와 매칭되는 디바이스 ID (임시 하드코딩)
+    // ✅ 변경: OWNER_ID → DEVICE_ID
     private static final String DEVICE_ID = "temi-001";
 
     // UI
@@ -60,7 +63,13 @@ public class CheckoutFragment extends Fragment {
     private LinearLayout buttonScan;
     private LinearLayout buttonPay;
     private LinearLayout buttonPaymentDone;
+
+    // ✅ 변경: QR 오버레이 제거, 단순 ImageView 사용
     private ImageView imageQr;
+
+    // ✅ 추가: 전체 비우기 버튼
+    private LinearLayout btnClearCart;
+
     private ProgressBar progressBar;
 
     // 장바구니 화면용
@@ -75,7 +84,32 @@ public class CheckoutFragment extends Fragment {
     private String currentOrderId;
     private String currentCheckoutUrl;
 
+    private Robot temiRobot;
+
     private final NumberFormat nf = NumberFormat.getInstance(Locale.KOREA);
+
+    private boolean isPolling = false;
+
+    private void startCartPolling() {
+        if (isPolling) return;
+        isPolling = true;
+        handler.post(cartPollingTask);
+    }
+
+    private void stopCartPolling() {
+        isPolling = false;
+        handler.removeCallbacks(cartPollingTask);
+    }
+
+    // ✅ Polling
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable cartPollingTask = new Runnable() {
+        @Override
+        public void run() {
+            fetchCartFromServer(false);
+            handler.postDelayed(this, 3000);
+        }
+    };
 
     @Nullable
     @Override
@@ -85,7 +119,7 @@ public class CheckoutFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_checkout, container, false);
 
-        // -------- 뷰 바인딩 --------
+        // 뷰 바인딩
         textStatus = view.findViewById(R.id.textStatus);
         textTotalPrice = view.findViewById(R.id.textTotalPrice);
         textItemCount = view.findViewById(R.id.textItemCount);
@@ -93,7 +127,15 @@ public class CheckoutFragment extends Fragment {
         buttonScan = view.findViewById(R.id.buttonScan);
         buttonPay = view.findViewById(R.id.buttonPay);
         buttonPaymentDone = view.findViewById(R.id.buttonPaymentDone);
+
+        // ✅ 변경: 단순 QR ImageView
         imageQr = view.findViewById(R.id.imageQr);
+
+        // ✅ 추가: 전체 비우기 버튼
+        btnClearCart = view.findViewById(R.id.btnClearCart);
+
+        temiRobot = Robot.getInstance();
+
         progressBar = view.findViewById(R.id.progressBar);
 
         View buttonBack = view.findViewById(R.id.buttonBack);
@@ -101,60 +143,96 @@ public class CheckoutFragment extends Fragment {
             buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
         }
 
-        // -------- Retrofit APIs --------
+        // Retrofit
         cartApi = RetrofitClient.getClient().create(CartApi.class);
         paymentApi = RetrofitClient.getClient().create(PaymentApi.class);
 
-        // -------- RecyclerView --------
+        // RecyclerView
         cartAdapter = new CartAdapter();
         recyclerCart.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerCart.setAdapter(cartAdapter);
 
-        // 처음 진입할 때 서버에서 장바구니 불러오기
-        fetchCartFromServer();
-
         // 버튼 리스너
         buttonScan.setOnClickListener(v -> {
-            // 바코드 스캔은 외부 아두이노가 담당
-            Toast.makeText(getContext(),
-                    "바코드 스캔은 외부 스캐너에서 처리됩니다.",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    getContext(),
+                    "바코드 스캔 중입니다.\n장바구니를 자동으로 갱신합니다.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            startCartPolling();
         });
 
         buttonPay.setOnClickListener(v -> startPayment());
 
-        buttonPaymentDone.setOnClickListener(v -> checkPaymentStatus());
+        buttonPaymentDone.setOnClickListener(v -> {
+            stopCartPolling();
+            hideQr();
+            goToBase();
+        });
+
+        // ✅ 추가: 전체 비우기 버튼 클릭
+        if (btnClearCart != null) {
+            btnClearCart.setOnClickListener(v -> {
+                // 로컬 장바구니만 비우기 (서버 API 없음)
+                cartItems.clear();
+                cartAdapter.setItems(cartItems);
+                updateTotalPriceAndCount();
+                hideQr();
+                Toast.makeText(getContext(), "장바구니를 비웠습니다.", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        // 최초 1회
+        fetchCartFromServer(true);
 
         return view;
     }
 
-    // ==============================
-    // 1) 서버에서 장바구니 불러오기
-    // ==============================
-    private void fetchCartFromServer() {
-        showLoading(true);
-        textStatus.setText("장바구니를 불러오는 중입니다...");
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopCartPolling();
+    }
+
+    private void goToBase() {
+        try {
+            temiRobot.goTo("홈베이스");
+            Toast.makeText(getContext(), "베이스로 이동합니다.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "goToBase 실패: " + e.getMessage(), e);
+            Toast.makeText(getContext(), "베이스 이동 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // ==============================
+    // 1) Cart 조회: GET /api/cart/current?device_id=temi-001
+    // ==============================
+    private void fetchCartFromServer(boolean showSpinner) {
+        if (showSpinner) showLoading(true);
+
+        // ✅ 변경: getCart() → getCurrentCart()
         cartApi.getCurrentCart(DEVICE_ID).enqueue(new Callback<CartResponse>() {
             @Override
             public void onResponse(@NonNull Call<CartResponse> call,
                                    @NonNull Response<CartResponse> response) {
-                showLoading(false);
+                if (showSpinner) showLoading(false);
 
                 if (!response.isSuccessful() || response.body() == null) {
                     Log.e(TAG, "장바구니 조회 실패: HTTP " + response.code());
-                    Toast.makeText(getContext(),
-                            "장바구니 조회 실패 (" + response.code() + ")",
-                            Toast.LENGTH_SHORT).show();
                     textStatus.setText("장바구니를 불러오지 못했습니다.");
                     return;
                 }
 
                 CartResponse body = response.body();
+
+                // ✅ 변경: body.getCart() 제거, 직접 접근
                 if (!body.isSuccess() || body.getItems() == null) {
-                    Toast.makeText(getContext(),
-                            "장바구니가 비어있거나 오류가 발생했습니다.",
-                            Toast.LENGTH_SHORT).show();
                     textStatus.setText("장바구니가 비어 있습니다.");
                     cartItems.clear();
                     cartAdapter.setItems(cartItems);
@@ -162,25 +240,28 @@ public class CheckoutFragment extends Fragment {
                     return;
                 }
 
-                // RemoteCartItem -> 화면용 CartItem 으로 변환
-                cartItems.clear();
-                for (RemoteCartItem r : body.getItems()) {
+                // ✅ 변경: body.getCart().getItems() → body.getItems()
+                List<RemoteCartItem> remoteItems = body.getItems();
 
-                    // UI에서 사용할 Product 객체 생성
+                cartItems.clear();
+                for (RemoteCartItem r : remoteItems) {
+
+                    // ✅ 변경: r.getProductId() → r.getProduct_id()
                     Product p = new Product(
                             r.getProduct_id(),
                             r.getName(),
                             r.getPrice(),
-                            null,   // brand  (필요하면 API에 추가)
-                            null,   // category
-                            null    // imageUrl
+                            null, // brand
+                            null, // category
+                            null  // imageUrl
                     );
 
                     CartItem ci = new CartItem(p);
-                    // CartItem 은 기본 quantity=1 이라, remote quantity 반영 필요
-                    for (int i = 1; i < r.getQuantity(); i++) {
-                        ci.increase();
-                    }
+
+                    // 수량 반영 (CartItem 기본 1)
+                    int q = r.getQuantity();
+                    for (int i = 1; i < q; i++) ci.increase();
+
                     cartItems.add(ci);
                 }
 
@@ -193,17 +274,13 @@ public class CheckoutFragment extends Fragment {
             @Override
             public void onFailure(@NonNull Call<CartResponse> call,
                                   @NonNull Throwable t) {
-                showLoading(false);
+                if (showSpinner) showLoading(false);
                 Log.e(TAG, "장바구니 조회 통신 오류: " + t.getMessage(), t);
-                Toast.makeText(getContext(),
-                        "장바구니 조회 중 오류가 발생했습니다.",
-                        Toast.LENGTH_SHORT).show();
-                textStatus.setText("장바구니를 불러오는 중 오류가 발생했습니다.");
+                textStatus.setText("장바구니 통신 오류");
             }
         });
     }
 
-    /** 합계 & Item n 텍스트 갱신 */
     private void updateTotalPriceAndCount() {
         long total = 0;
         int count = 0;
@@ -211,22 +288,14 @@ public class CheckoutFragment extends Fragment {
             total += item.getLineTotal();
             count += item.getQuantity();
         }
-
         textTotalPrice.setText("₩" + nf.format(total));
-        if (textItemCount != null) {
-            textItemCount.setText("Item " + count);
-        }
+        if (textItemCount != null) textItemCount.setText("Item " + count);
     }
 
     // ==============================
-    // 2) 결제 시작 (/api/payments/initiate)
+    // 2) 결제 시작: POST /api/payments/initiate
     // ==============================
     private void startPayment() {
-//        if (cartItems.isEmpty()) {
-//            Toast.makeText(getContext(), "장바구니가 비어 있습니다.", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-
         List<PaymentItem> paymentItems = new ArrayList<>();
         int totalAmount = 0;
 
@@ -248,11 +317,12 @@ public class CheckoutFragment extends Fragment {
             ));
         }
 
+        // ✅ 변경: 새로운 생성자 사용 (customer_id, customer_email 추가)
         PaymentInitiateRequest request = new PaymentInitiateRequest(
-                DEVICE_ID,             // customer_id (Temi ID 또는 고객 ID)
-                "매장고객",             // customer_name
-                null,                  // email
-                "00000000000",         // phone
+                "guest_" + DEVICE_ID,   // customer_id
+                "매장고객",              // customer_name
+                "guest@oliveyoung.com", // customer_email
+                "00000000000",          // customer_phone
                 paymentItems,
                 totalAmount,
                 0,
@@ -271,42 +341,38 @@ public class CheckoutFragment extends Fragment {
                 if (!response.isSuccessful() || response.body() == null) {
                     String msg = "결제 시작 실패 (HTTP " + response.code() + ")";
                     Log.e(TAG, msg);
+                    textStatus.setText("결제 시작 실패");
                     Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-                    textStatus.setText("결제 시작에 실패했습니다.");
                     return;
                 }
 
                 PaymentInitiateResponse body = response.body();
                 if (!body.isSuccess()) {
-                    Log.e(TAG, "결제 시작 실패: success=false");
+                    textStatus.setText("결제 시작 실패");
                     Toast.makeText(getContext(), "결제 시작 실패", Toast.LENGTH_SHORT).show();
-                    textStatus.setText("결제 시작에 실패했습니다.");
                     return;
                 }
 
                 currentOrderId = body.getOrder_id();
                 currentCheckoutUrl = body.getCheckout_url();
 
-                textStatus.setText("고객 앱에서 결제를 진행해주세요.\n결제가 끝나면 '결제 완료' 버튼을 눌러주세요.");
-                Toast.makeText(getContext(), "결제 QR/URL이 생성되었습니다.", Toast.LENGTH_SHORT).show();
-
-                // ---- QR 코드 생성 & 표시 ----
                 String qrData = body.getQr_data();
-                if (qrData == null || qrData.isEmpty()) {
-                    qrData = currentCheckoutUrl;  // 혹시 qr_data 없으면 URL로 생성
+                if (TextUtils.isEmpty(qrData)) qrData = currentCheckoutUrl;
+
+                if (TextUtils.isEmpty(qrData)) {
+                    textStatus.setText("QR 데이터가 없습니다. 서버 응답을 확인해주세요.");
+                    return;
                 }
 
-                if (!TextUtils.isEmpty(qrData)) {
-                    Bitmap qrBitmap = generateQrCode(qrData, 600);
-                    if (qrBitmap != null) {
-                        imageQr.setImageBitmap(qrBitmap);
-                        imageQr.setVisibility(View.VISIBLE);
-                    } else {
-                        textStatus.setText("QR 코드 생성 중 오류가 발생했습니다.");
-                    }
-                } else {
-                    textStatus.setText("QR 데이터가 없습니다.");
+                Bitmap qrBitmap = generateQrCode(qrData, 500);
+                if (qrBitmap == null) {
+                    textStatus.setText("QR 생성 실패");
+                    return;
                 }
+
+                // ✅ 변경: 오버레이 대신 단순 ImageView 표시
+                showQr(qrBitmap);
+                textStatus.setText("고객 앱에서 QR을 스캔해 결제를 진행해주세요.\n결제가 끝나면 '쇼핑 완료' 버튼을 눌러주세요.");
             }
 
             @Override
@@ -314,15 +380,26 @@ public class CheckoutFragment extends Fragment {
                                   @NonNull Throwable t) {
                 showLoading(false);
                 Log.e(TAG, "결제 시작 통신 오류: " + t.getMessage(), t);
-                Toast.makeText(getContext(), "결제 요청 실패: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-                textStatus.setText("결제 시작 중 오류가 발생했습니다.");
+                textStatus.setText("결제 요청 실패");
+                Toast.makeText(getContext(), "결제 요청 실패: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    // ✅ 변경: 단순 QR 이미지 표시
+    private void showQr(Bitmap qrBitmap) {
+        if (imageQr == null) return;
+        imageQr.setImageBitmap(qrBitmap);
+        imageQr.setVisibility(View.VISIBLE);
+    }
+
+    private void hideQr() {
+        if (imageQr == null) return;
+        imageQr.setVisibility(View.GONE);
+    }
+
     // ==============================
-    // 3) 결제 완료 확인 (/api/payments/orders/{orderId})
+    // 3) 주문 조회: GET /api/payments/orders/{orderId}
     // ==============================
     private void checkPaymentStatus() {
         if (TextUtils.isEmpty(currentOrderId)) {
@@ -340,30 +417,31 @@ public class CheckoutFragment extends Fragment {
                 showLoading(false);
 
                 if (!response.isSuccessful() || response.body() == null) {
-                    Log.e(TAG, "주문 조회 실패: HTTP " + response.code());
-                    Toast.makeText(getContext(),
-                            "주문 조회 실패 (" + response.code() + ")",
-                            Toast.LENGTH_SHORT).show();
+                    textStatus.setText("주문 조회 실패");
                     return;
                 }
 
                 OrderResponse body = response.body();
                 if (!body.isSuccess() || body.getOrder() == null) {
-                    Toast.makeText(getContext(), "주문 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+                    textStatus.setText("주문 정보 없음");
                     return;
                 }
 
                 String paymentStatus = body.getOrder().getPayment_status();
-
                 if ("DONE".equals(paymentStatus)) {
                     textStatus.setText("결제가 완료되었습니다. 감사합니다!");
                     Toast.makeText(getContext(), "결제 완료!", Toast.LENGTH_SHORT).show();
-                    // TODO: 장바구니 초기화, 홈 이동, /api/cart/clear 호출 등
+
+                    hideQr();
+                    stopCartPolling();
+
+                    // 결제 완료 후 장바구니 새로고침
+                    fetchCartFromServer(true);
+
+                    goToBase();
+
                 } else {
                     textStatus.setText("현재 결제 상태: " + paymentStatus);
-                    Toast.makeText(getContext(),
-                            "아직 결제가 완료되지 않았습니다.\n상태: " + paymentStatus,
-                            Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -371,29 +449,23 @@ public class CheckoutFragment extends Fragment {
             public void onFailure(@NonNull Call<OrderResponse> call,
                                   @NonNull Throwable t) {
                 showLoading(false);
-                Log.e(TAG, "주문 조회 통신 오류: " + t.getMessage(), t);
-                Toast.makeText(getContext(),
-                        "주문 조회 중 오류가 발생했습니다.",
-                        Toast.LENGTH_SHORT).show();
+                textStatus.setText("주문 조회 통신 오류");
             }
         });
     }
-
-    // ==============================
-    // 공통 유틸
-    // ==============================
 
     private void showLoading(boolean show) {
         if (progressBar != null) {
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         }
+
         boolean enable = !show;
-        buttonScan.setEnabled(enable);
-        buttonPay.setEnabled(enable);
-        buttonPaymentDone.setEnabled(enable);
+        if (buttonScan != null) buttonScan.setEnabled(enable);
+        if (buttonPay != null) buttonPay.setEnabled(enable);
+        if (buttonPaymentDone != null) buttonPaymentDone.setEnabled(enable);
+        if (btnClearCart != null) btnClearCart.setEnabled(enable);
     }
 
-    /** QR 코드 비트맵 생성 */
     private Bitmap generateQrCode(String text, int size) {
         try {
             QRCodeWriter writer = new QRCodeWriter();
@@ -407,7 +479,7 @@ public class CheckoutFragment extends Fragment {
             }
             return bitmap;
         } catch (WriterException e) {
-            Log.e(TAG, "QR 코드 생성 실패: " + e.getMessage(), e);
+            Log.e(TAG, "QR 생성 실패: " + e.getMessage(), e);
             return null;
         }
     }

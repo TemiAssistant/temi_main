@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,7 +34,7 @@ import retrofit2.Response;
 public class AiRecommendFragment extends Fragment {
 
     private EditText editQuestion;
-    private Button btnAskAi;
+    private LinearLayout btnAskAi;
     private Button buttonBack;
     private TextView textAnalysis;
     private RecyclerView recyclerAi;

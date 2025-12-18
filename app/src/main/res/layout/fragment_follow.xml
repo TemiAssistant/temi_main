@@ -34,7 +34,7 @@
             android:gravity="center"
             android:text="따라가기"
             android:textColor="@color/text_primary"
-            android:textSize="28sp"
+            android:textSize="50sp"
             android:textStyle="bold" />
 
         <View
@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:text="테미 상태가 여기 표시됩니다."
         android:textColor="@color/text_primary"
-        android:textSize="20sp"
+        android:textSize="25sp"
         android:textStyle="bold"
         android:gravity="center"
         android:padding="24dp"
@@ -70,56 +70,97 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
 
-        <!-- 따라오기 버튼: ic_follow 아이콘 적용 -->
-        <Button
+        <!-- 따라오기 (LinearLayout 버튼) -->
+        <LinearLayout
             android:id="@+id/buttonFollow"
             android:layout_width="0dp"
             android:layout_height="160dp"
             android:layout_weight="1"
             android:layout_margin="8dp"
             android:gravity="center"
-            android:drawableTop="@drawable/ic_follow"
-            android:drawablePadding="12dp"
-            android:text="따라오기"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green" />
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@drawable/menu_button_bg">
 
-        <!-- 멈추기 버튼 -->
-        <Button
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/ic_follow"
+                android:tint="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="따라오기"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp" />
+        </LinearLayout>
+
+        <!-- 멈추기 (LinearLayout 버튼) -->
+        <LinearLayout
             android:id="@+id/buttonStop"
             android:layout_width="0dp"
             android:layout_height="160dp"
             android:layout_weight="1"
             android:layout_margin="8dp"
             android:gravity="center"
-            android:drawableTop="@drawable/ic_stop"
-            android:drawablePadding="8dp"
-            android:text="멈추기"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green" />
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@drawable/menu_button_bg">
 
-        <!-- 베이스로 돌아가기 버튼 -->
-        <Button
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/ic_stop"
+                android:tint="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="멈추기"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp" />
+        </LinearLayout>
+
+
+        <!-- 베이스로 돌아가기 (LinearLayout 버튼) -->
+        <LinearLayout
             android:id="@+id/buttonGoHome"
             android:layout_width="0dp"
             android:layout_height="160dp"
             android:layout_weight="1"
             android:layout_margin="8dp"
             android:gravity="center"
-            android:drawableTop="@drawable/ic_to_base"
-            android:drawablePadding="8dp"
-            android:text="베이스로 돌아가기"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:background="@drawable/menu_button_bg"
-            android:backgroundTint="@color/oliveyoung_green" />
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@drawable/menu_button_bg">
+
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/ic_to_base"
+                android:tint="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="베이스로 돌아가기"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

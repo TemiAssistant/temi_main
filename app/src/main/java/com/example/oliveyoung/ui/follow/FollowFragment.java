@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,15 +19,18 @@ public class FollowFragment extends Fragment {
 
     private Robot robot;
 
-    private Button buttonFollow;
-    private Button buttonStop;
-    private Button buttonGoHome;
-    private Button buttonBack;      // 🔹 추가: 뒤로가기 버튼
+    // 하단 버튼들은 XML에서 LinearLayout으로 되어 있으니 LinearLayout 타입으로 받기
+    private LinearLayout buttonFollow;
+    private LinearLayout buttonStop;
+    private LinearLayout buttonGoHome;
+
+    // 뒤로가기 버튼은 Button이든 LinearLayout이든 상관없이 View로만 잡으면 안전
+    private View buttonBack;
+
     private TextView textStatus;
 
     // Temi에서 "베이스(충전소)"로 저장해 둔 위치 이름
-    // Temi Settings → Locations 에서 실제 이름을 이 문자열과 맞춰줘야 함
-    private static final String BASE_LOCATION_NAME = "충전소"; // 예: "충전소", "home base" 등 네가 저장한 이름으로 바꿔도 됨
+    private static final String BASE_LOCATION_NAME = "충전소";
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,16 +48,17 @@ public class FollowFragment extends Fragment {
         // fragment_follow.xml 을 inflate
         View view = inflater.inflate(R.layout.fragment_follow, container, false);
 
+        // XML과 타입 맞춰서 findViewById
         buttonFollow = view.findViewById(R.id.buttonFollow);
         buttonStop = view.findViewById(R.id.buttonStop);
         buttonGoHome = view.findViewById(R.id.buttonGoHome);
         textStatus = view.findViewById(R.id.textStatus);
-        buttonBack = view.findViewById(R.id.buttonBack);   // 🔹 추가: XML의 buttonBack 가져오기
+        buttonBack = view.findViewById(R.id.buttonBack);
 
         // 🔹 뒤로가기 버튼: MainActivity의 onBackPressed() 호출 → 홈 화면으로
-        buttonBack.setOnClickListener(v -> {
-            requireActivity().onBackPressed();
-        });
+        if (buttonBack != null) {
+            buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
+        }
 
         // 1) 따라오기
         buttonFollow.setOnClickListener(v -> {
